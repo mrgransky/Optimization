@@ -1,0 +1,9 @@
+Ts = 0.5
+timeStep = 10
+d = 2
+ADMM suggest SDR lower bound = -147.494968281
+ADMM: objective value = -120.7858947389524
+ADMM: max constraint violation = 0.39772285745319325
+DCCP suggest SDR lower bound = -147.494968281
+DCCP: objective value = -147.49315583168848
+DCCP max constraint violation = 3.7385675615159926
