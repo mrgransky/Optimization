@@ -8,7 +8,6 @@ from qcqp import *
 import mosek
 import time
 
-
 timeStep = 17
 Ts = .5 # sec !!! 
 
@@ -16,8 +15,8 @@ Ts = .5 # sec !!!
 d = 2 # m
 eps = .25 # m
 
-alpha = .0001
-beta = .1
+alpha = .00001
+beta = .0001
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
@@ -482,8 +481,8 @@ plt.grid()
 plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('ADMM Trajectory')
-plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
-plt.savefig('ADMMtraj.jpeg', dpi = 500)
+# plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
+plt.savefig('ADMMtraj.jpeg', dpi = 600)
 
 # ADMM y vs timeStep
 plt.figure()
@@ -493,7 +492,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('y [m]')
 plt.title('ADMM Y-axis')
-plt.savefig('ADMMy-axis.jpeg', dpi = 500)
+plt.savefig('ADMMy-axis.jpeg', dpi = 600)
 
 # ADMM Velocity:
 plt.figure()
@@ -503,7 +502,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('V_{x} [m/s]')
 plt.title('ADMM Velocity')
-plt.savefig('ADMMvel.jpeg', dpi = 500)
+plt.savefig('ADMMvel.jpeg', dpi = 600)
 
 # ADMM Acceleration:
 plt.figure()
@@ -514,7 +513,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('a [m/s^2]')
 plt.title('ADMM Acceleration')
-plt.savefig('ADMMacc.jpeg', dpi = 500)
+plt.savefig('ADMMacc.jpeg', dpi = 600)
 
 
 # DCCP Trajectory:
@@ -533,8 +532,8 @@ plt.grid()
 plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('DCCP Trajectory')
-plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
-plt.savefig('DCCPtraj.jpeg', dpi = 500)
+# plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
+plt.savefig('DCCPtraj.jpeg', dpi = 600)
 
 # DCCP y vs timeStep
 plt.figure()
@@ -545,7 +544,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('y [m]')
 plt.title('DCCP Y-axis')
-plt.savefig('DCCPy-axis.jpeg', dpi = 500)
+plt.savefig('DCCPy-axis.jpeg', dpi = 600)
 
 
 # DCCP Velocity:
@@ -557,7 +556,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('V_{x} [m/s]')
 plt.title('DCCP Velocity')
-plt.savefig('DCCPvel.jpeg', dpi = 500)
+plt.savefig('DCCPvel.jpeg', dpi = 600)
 
 # DCCP Acceleration:
 plt.figure()
