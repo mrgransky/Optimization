@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 import cvxpy
 import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
 from qcqp import *
@@ -8,50 +11,58 @@ print cvxpy.__version__
 
 import pickle
 import mosek
-print mosek
+
+import time
 
 print "cvxopt version = ", cvxopt.__version__
 from numpy import arange
 
 timeStep = 10
-# Ts = .5 # sec !!! 
-# d = .8 # m
+Ts = .5 # sec !!! 
+d = .8 # m
 
 
-# rowVehN = 2
-# colVehN = timeStep + 1 # initial pose + timeStep positions
+rowVehN = 2
+colVehN = timeStep + 1 # initial pose + timeStep positions
 
-# # Initialize matrices
-# vehicleN = np.zeros((rowVehN,colVehN),dtype=float)
+# Initialize matrices
+vehicleN = np.zeros((rowVehN,colVehN),dtype=float)
 
 # fitness_list = arange(1, 50, 2)
 # trait1_list = arange(0, 250, 10)
 # trait2_list = arange(150, 0, -6)
 
-# # position of vehicle 'n':
-# Xninit, Vninit, Yninit = 7,		20,		1.25
-# vehicleN[0,0] = Xninit
-# vehicleN[1,0] = Yninit
+# position of vehicle 'n':
+Xninit, Vninit, Yninit = 7,		20,		1.25
+vehicleN[0,0] = Xninit
+vehicleN[1,0] = Yninit
+start = time.time()
 
+# time.sleep(10)  # or do something more productive
 
-# # position of vehicle n in each time step:
-# posNprev = 0
-# for i in range(rowVehN):
-    # for j in range(1,colVehN):
-		# if i == rowVehN - 1:
-			# vehicleN[i][j] = Yninit
-		# else:
-			# vehicleN[i][j] =  (Vninit * Ts) + Xninit # Xn = Vn*Ts + XnPrev!
-			# Xninit = vehicleN[i][j] # update the Xn based on previous timeStep
+# position of vehicle n in each time step:
+posNprev = 0
+for i in range(rowVehN):
+    for j in range(1,colVehN):
+		if i == rowVehN - 1:
+			vehicleN[i][j] = Yninit
+		else:
+			vehicleN[i][j] =  (Vninit * Ts) + Xninit # Xn = Vn*Ts + XnPrev!
+			Xninit = vehicleN[i][j] # update the Xn based on previous timeStep
 		
-# print "vehicle N :", vehicleN
+print "vehicle N :", vehicleN
 # replicate = 5
 
-with open("info.txt", "w") as out_file:
-	maxConstVio = "max constraint violation = "
-	maxConstVio += str(timeStep)
-	maxConstVio += "\n"
-	out_file.write(maxConstVio)
+
+done = time.time()
+timneDiff = done - start
+print "time spent = ", timneDiff
+
+# with open("info.txt", "w") as out_file:
+	# maxConstVio = "max constraint violation = "
+	# maxConstVio += str(timeStep)
+	# maxConstVio += "\n"
+	# out_file.write(maxConstVio)
 
 # with open("output_data" + str(replicate) + ".csv", "w") as out_file:
     # for i in range(len(fitness_list)):

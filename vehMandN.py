@@ -6,7 +6,10 @@ import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
 # matplotlib.use('Agg')
 from qcqp import *
 import mosek
-timeStep = 30
+import time
+
+
+timeStep = 17
 Ts = .5 # sec !!! 
 
 # laneLength = 2*eps + d
@@ -200,12 +203,18 @@ consTot.append(consLin)
 
 # consTot = [consLin]
 	
-
 ## ------------------- formulating the problem: ------------------- ##
+tProbSt = time.time()
+
 prob = cvx.Problem(objective, consTot)
 qcqp = QCQP(prob)
 
-print "----------------- Program is starting.. ----------------"
+tProbEn = time.time()
+tDiffProb = tProbEn - tProbSt
+print "Problem formulation time [sec] = ", tDiffProb
+
+
+print "----------------- Program is starting ----------------"
 
 # qcqp.suggest(SPECTRAL)
 # print("Spectral-based lower bound: %.3f" % qcqp.spectral_bound)
@@ -247,14 +256,24 @@ print "----------------- Program is starting.. ----------------"
 
 # ----------------------- Coordinate Decent (ADMM): -------------------------
 
+tStSugADMM = time.time()
 # suggest method : SDR for ADMM
 qcqp.suggest(SDR, solver=cvx.MOSEK)
 sdrSugADMM = qcqp.sdr_bound
-print("ADMM; SDR-based lower bound: %.3f" % sdrSugADMM)
+tEnSugADMM = time.time()
+tDiffSugADMM = tEnSugADMM - tStSugADMM
+print("ADMM; SDR-based lower bound = %.3f, duration [sec] = " % (sdrSugADMM,tDiffSugADMM)
 
 # Attempt to improve the starting point given by the suggest method
+tStImpADMM = time.time()
+
 f_ADMM, v_ADMM = qcqp.improve(ADMM)
-print("ADMM: objective value = %.3f, max constraint violation = %.3f" % (f_ADMM, v_ADMM))
+
+tEnImpADMM = time.time()
+
+tDiffImpADMM = tEnImpADMM - tStImpADMM
+print("ADMM: objective value = %.3f, max constraint violation = %.3f , duration [sec] = " % (f_ADMM, v_ADMM, tDiffImpADMM))
+
 xADMM = np.copy(X.value)	
 print "xADMM = ", xADMM
 
@@ -279,14 +298,20 @@ print "VelM_ADMM: ", velM_ADMM
 print "accM_ADMM: ", accM_ADMM
 
 # ----------------------- Coordinate Decent (DCCP): -------------------------
+tStSugDCCP = time.time()
 # suggest method : SDR DCCP
 qcqp.suggest(SDR, solver=cvx.MOSEK)
 sdrSugDCCP = qcqp.sdr_bound
-print("DCCP; SDR-based lower bound: %.3f" % sdrSugDCCP)
+tEnSugDCCP = time.time()
+tDiffSugDCCP = tEnSugADMM - tStSugADMM
+print("DCCP; SDR-based lower bound: %.3f , duration [sec] = " % (sdrSugDCCP, tDiffSugDCCP)
 
 # Attempt to improve the starting point given by the suggest method
+tStImpDCCP = time.time()
 f_DCCP, v_DCCP = qcqp.improve(DCCP)
-print("DCCP: objective value = %.3f, max constraint violation = %.3f" % (f_DCCP, v_DCCP))
+tEnImpDCCP = time.time()
+tDiffImpDCCP = tEnImpDCCP - tStImpDCCP 
+print("DCCP: objective value = %.3f, max constraint violation = %.3f , duration [sec] = " % (f_DCCP, v_DCCP, tDiffImpDCCP))
 xDCCP = np.copy(X.value)
 print "xDCCP = ", xDCCP
 
@@ -314,53 +339,61 @@ print "accM_DCCP: ", accM_DCCP
 with open("readMe.txt", "w") as out_file:
 	ts = "Ts = "
 	ts += str(Ts)
-	ts += "\n"
+	ts += "\n\n"
 	
 	tStp = "timeStep = "
 	tStp += str(timeStep)
-	tStp += "\n"
+	tStp += "\n\n"
 	
 	diameter = "d = "
 	diameter += str(d)
-	diameter += "\n"
+	diameter += "\n\n"
+	
+	timeSuggestADMM = "ADMM suggest duration [sec] = "
+	timeSuggestADMM += str(tDiffSugADMM)
+	timeSuggestADMM += "\n\n"
 	
 	lwBoundADMM = "ADMM suggest SDR lower bound = "
 	lwBoundADMM += str(sdrSugADMM)
-	lwBoundADMM += "\n"
+	lwBoundADMM += "\n\n"
 	
 	objValADMM = "ADMM: objective value = "
 	objValADMM += str(f_ADMM)
-	objValADMM += "\n"
+	objValADMM += "\n\n"
 	
 	maxVioADMM = "ADMM: max constraint violation = "
 	maxVioADMM += str(v_ADMM)
-	maxVioADMM += "\n"
+	maxVioADMM += "\n\n"
+	
+	timeSuggestDCCP = "DCCP suggest duration [sec] = "
+	timeSuggestDCCP += str(tDiffSugDCCP)
+	timeSuggestDCCP += "\n\n"
 	
 	lwBoundDCCP = "DCCP suggest SDR lower bound = "
 	lwBoundDCCP += str(sdrSugDCCP)
-	lwBoundDCCP += "\n"
+	lwBoundDCCP += "\n\n"
 	
 	objValDCCP = "DCCP: objective value = "
 	objValDCCP += str(f_DCCP)
-	objValDCCP += "\n"
+	objValDCCP += "\n\n"
 	
 	maxVioDCCP = "DCCP max constraint violation = "
 	maxVioDCCP += str(v_DCCP)
-	maxVioDCCP += "\n"
+	maxVioDCCP += "\n\n"
 	
 	out_file.write(ts)
 	out_file.write(tStp)
 	out_file.write(diameter)
 	
+	out_file.write(timeSuggestADMM)
 	out_file.write(lwBoundADMM)
 	out_file.write(objValADMM)
 	out_file.write(maxVioADMM)
 	
+	out_file.write(timeSuggestDCCP)
 	out_file.write(lwBoundDCCP)
 	out_file.write(objValDCCP)
 	out_file.write(maxVioDCCP)
-	
-	
 	
 
 # --------------------------- Plotting ------------------------------
@@ -420,7 +453,7 @@ for idx in range(timeStep+1):
 	else:
 		tmp = idx
 		plt.plot(xADMM[5*tmp]+(d/2)*np.cos(circ),xADMM[(5*tmp)+2]+(d/2)*np.sin(circ), 'b')
-		plt.plot(vehicleN[0][tmp]+(d/2)*np.cos(circ),vehicleN[1][tmp]+(d/2)*np.sin(circ), 'r')
+		plt.plot(vehicleN[0][tmp]+(d/	2)*np.cos(circ),vehicleN[1][tmp]+(d/2)*np.sin(circ), 'r')
 		
 plt.grid()
 # plt.axis([-2, 200, Ymin-d/2, Ymax+d/2])
