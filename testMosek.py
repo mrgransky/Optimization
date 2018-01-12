@@ -1,16 +1,20 @@
-# import matplotlib
-# matplotlib.use('Agg')
+import matplotlib
+matplotlib.use('Agg')
 
 import cvxpy
 import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
 from qcqp import *
 
 import cvxopt
-print ("cvx version = ")
-print cvxpy.__version__
+print "cvxopt version = " , cvxpy.__version__
 
 import pickle
 import mosek
+print "mosek" , mosek
+
+
+print('Backend: {}'.format(plt.get_backend()))
+
 
 import time
 
@@ -23,11 +27,11 @@ plt.plot([1,2], [1,2])
 
 # Option 1
 # QT backend
-manager = plt.get_current_fig_manager()
-manager.window.showMaximized()
+# manager = plt.get_current_fig_manager()
+# manager.window.showMaximized()
 
-# # Option 2
-# # TkAgg backend
+# Option 2
+# TkAgg backend
 # manager = plt.get_current_fig_manager()
 # manager.resize(*manager.window.maxsize())
 
@@ -35,7 +39,7 @@ manager.window.showMaximized()
 # # WX backend
 # manager = plt.get_current_fig_manager()
 # manager.frame.Maximize(True)
-plt.savefig('sampleFileName.png')
+plt.savefig('sampleFileName.jpeg', dpi = 600)
 
 plt.show()
 

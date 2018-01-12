@@ -9,7 +9,7 @@ import mosek
 import time
 
 
-timeStep = 5
+timeStep = 17
 Ts = .5 # sec !!! 
 
 # laneLength = 2*eps + d
