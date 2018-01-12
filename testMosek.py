@@ -11,13 +11,8 @@ print "cvxopt version = " , cvxpy.__version__
 import pickle
 import mosek
 print "mosek" , mosek
-
-
 print('Backend: {}'.format(plt.get_backend()))
-
-
 import time
-
 print "cvxopt version = ", cvxopt.__version__
 from numpy import arange
 
