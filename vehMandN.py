@@ -15,8 +15,8 @@ Ts = .5 # sec !!!
 d = 2 # m
 eps = .25 # m
 
-alpha = .00001
-beta = .0001
+alpha = .001
+beta = .1
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
@@ -124,7 +124,8 @@ Cmodel = np.identity(3)
 for i in range(timeStep):
 	P0[5*(i+1)-2,5*(i+1)-2] = alpha
 	P0[5*(i+1)-1,5*(i+1)-1] = beta
-P_obj = .5*(P0+P0.T)
+# P_obj = .5*(P0+P0.T)
+P_obj = P0
 # print "P_obj = ", P_obj
 
 q_obj[5*timeStep,0] = -1
@@ -132,7 +133,7 @@ q_obj[5*timeStep,0] = -1
 
 r_obj = Xminit
 	
-objective = cvx.Minimize(cvx.quad_form(X,P_obj) + q_obj.T*X  + r_obj)
+objective = cvx.Minimize(.5*cvx.quad_form(X,P_obj) + q_obj.T*X  + r_obj)
 # -------------------------------------------------------------------
 
 # Linear Constraint A.X = b
@@ -177,6 +178,8 @@ for j in range(timeStep):
 consLin = A*X == b
 # ----------------------------------------------------
 
+
+prev_rc = 0
 # Quadratic Constraint:
 for t in range(timeStep):
 	q_c = np.zeros((5*timeStep+3,1),dtype=float)
@@ -188,8 +191,9 @@ for t in range(timeStep):
 
 	q_c[5*tmp] = 2*vehicleN[0][tmp]
 	q_c[(5*tmp)+2] = 2*vehicleN[1][tmp]
-	r_c = d**2 - (vehicleN[0][tmp])**2 - (vehicleN[1][tmp])**2
-	P_c = .5*(P_c+P_c.T)
+	r_c = d**2 - (vehicleN[0][tmp])**2 - (vehicleN[1][tmp])**2 + prev_rc
+	prev_rc = r_c
+	# P_c = .5*(P_c+P_c.T)
 	consTot.append(.5*cvx.quad_form(X,P_c) + q_c.T*X + r_c <= 0)
 
 
