@@ -1,5 +1,5 @@
-import matplotlib
-matplotlib.use('Agg')
+# import matplotlib
+# matplotlib.use('Agg')
 
 import cvxpy
 import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
@@ -16,6 +16,29 @@ import time
 
 print "cvxopt version = ", cvxopt.__version__
 from numpy import arange
+
+
+plt.figure()
+plt.plot([1,2], [1,2])
+
+# Option 1
+# QT backend
+manager = plt.get_current_fig_manager()
+manager.window.showMaximized()
+
+# # Option 2
+# # TkAgg backend
+# manager = plt.get_current_fig_manager()
+# manager.resize(*manager.window.maxsize())
+
+# # Option 3
+# # WX backend
+# manager = plt.get_current_fig_manager()
+# manager.frame.Maximize(True)
+plt.savefig('sampleFileName.png')
+
+plt.show()
+
 
 timeStep = 10
 Ts = .5 # sec !!! 
