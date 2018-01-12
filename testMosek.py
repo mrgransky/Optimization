@@ -14,8 +14,6 @@ print "mosek" , mosek
 print('Backend: {}'.format(plt.get_backend()))
 import time
 print "cvxopt version = ", cvxopt.__version__
-from numpy import arange
-
 
 plt.figure()
 plt.plot([1,2], [1,2])
@@ -49,10 +47,6 @@ colVehN = timeStep + 1 # initial pose + timeStep positions
 
 # Initialize matrices
 vehicleN = np.zeros((rowVehN,colVehN),dtype=float)
-
-# fitness_list = arange(1, 50, 2)
-# trait1_list = arange(0, 250, 10)
-# trait2_list = arange(150, 0, -6)
 
 # position of vehicle 'n':
 Xninit, Vninit, Yninit = 7,		20,		1.25
