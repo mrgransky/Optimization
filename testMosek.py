@@ -53,7 +53,6 @@ for i in range(rowVehN):
 print "vehicle N :", vehicleN
 # replicate = 5
 
-
 done = time.time()
 timneDiff = done - start
 print "time spent = ", timneDiff

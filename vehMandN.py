@@ -9,7 +9,7 @@ import mosek
 import time
 
 
-timeStep = 17
+timeStep = 5
 Ts = .5 # sec !!! 
 
 # laneLength = 2*eps + d
@@ -262,7 +262,7 @@ qcqp.suggest(SDR, solver=cvx.MOSEK)
 sdrSugADMM = qcqp.sdr_bound
 tEnSugADMM = time.time()
 tDiffSugADMM = tEnSugADMM - tStSugADMM
-print("ADMM; SDR-based lower bound = %.3f, duration [sec] = " % (sdrSugADMM,tDiffSugADMM)
+print("ADMM; SDR-based lower bound = %.3f, duration [sec] = %.5f " % (sdrSugADMM, tDiffSugADMM))
 
 # Attempt to improve the starting point given by the suggest method
 tStImpADMM = time.time()
@@ -272,7 +272,7 @@ f_ADMM, v_ADMM = qcqp.improve(ADMM)
 tEnImpADMM = time.time()
 
 tDiffImpADMM = tEnImpADMM - tStImpADMM
-print("ADMM: objective value = %.3f, max constraint violation = %.3f , duration [sec] = " % (f_ADMM, v_ADMM, tDiffImpADMM))
+print("ADMM: objective value = %.3f, max constraint violation = %.3f , duration [sec] %.5f = " % (f_ADMM, v_ADMM, tDiffImpADMM))
 
 xADMM = np.copy(X.value)	
 print "xADMM = ", xADMM
@@ -304,14 +304,14 @@ qcqp.suggest(SDR, solver=cvx.MOSEK)
 sdrSugDCCP = qcqp.sdr_bound
 tEnSugDCCP = time.time()
 tDiffSugDCCP = tEnSugADMM - tStSugADMM
-print("DCCP; SDR-based lower bound: %.3f , duration [sec] = " % (sdrSugDCCP, tDiffSugDCCP)
+print("DCCP; SDR-based lower bound = %.3f , duration [sec] = %.5f " % (sdrSugDCCP, tDiffSugDCCP))
 
 # Attempt to improve the starting point given by the suggest method
 tStImpDCCP = time.time()
 f_DCCP, v_DCCP = qcqp.improve(DCCP)
 tEnImpDCCP = time.time()
 tDiffImpDCCP = tEnImpDCCP - tStImpDCCP 
-print("DCCP: objective value = %.3f, max constraint violation = %.3f , duration [sec] = " % (f_DCCP, v_DCCP, tDiffImpDCCP))
+print("DCCP: objective value = %.3f, max constraint violation = %.3f , duration [sec] = %.5f " % (f_DCCP, v_DCCP, tDiffImpDCCP))
 xDCCP = np.copy(X.value)
 print "xDCCP = ", xDCCP
 
@@ -339,47 +339,47 @@ print "accM_DCCP: ", accM_DCCP
 with open("readMe.txt", "w") as out_file:
 	ts = "Ts = "
 	ts += str(Ts)
-	ts += "\n\n"
+	ts += " \n \n"
 	
-	tStp = "timeStep = "
+	tStp = " timeStep = "
 	tStp += str(timeStep)
-	tStp += "\n\n"
+	tStp += "\n \n"
 	
-	diameter = "d = "
+	diameter = " d = "
 	diameter += str(d)
-	diameter += "\n\n"
+	diameter += " \n \n"
 	
-	timeSuggestADMM = "ADMM suggest duration [sec] = "
+	timeSuggestADMM = " ADMM suggest duration [sec] = "
 	timeSuggestADMM += str(tDiffSugADMM)
 	timeSuggestADMM += "\n\n"
 	
-	lwBoundADMM = "ADMM suggest SDR lower bound = "
+	lwBoundADMM = " ADMM suggest SDR lower bound = "
 	lwBoundADMM += str(sdrSugADMM)
-	lwBoundADMM += "\n\n"
+	lwBoundADMM += "\n \n"
 	
-	objValADMM = "ADMM: objective value = "
+	objValADMM = " ADMM: objective value = "
 	objValADMM += str(f_ADMM)
-	objValADMM += "\n\n"
+	objValADMM += " \n \n"
 	
 	maxVioADMM = "ADMM: max constraint violation = "
 	maxVioADMM += str(v_ADMM)
-	maxVioADMM += "\n\n"
+	maxVioADMM += " \n \n"
 	
-	timeSuggestDCCP = "DCCP suggest duration [sec] = "
+	timeSuggestDCCP = " DCCP suggest duration [sec] = "
 	timeSuggestDCCP += str(tDiffSugDCCP)
-	timeSuggestDCCP += "\n\n"
+	timeSuggestDCCP += " \n \n"
 	
-	lwBoundDCCP = "DCCP suggest SDR lower bound = "
+	lwBoundDCCP = " DCCP suggest SDR lower bound = "
 	lwBoundDCCP += str(sdrSugDCCP)
-	lwBoundDCCP += "\n\n"
+	lwBoundDCCP += " \n \n"
 	
-	objValDCCP = "DCCP: objective value = "
+	objValDCCP = " DCCP: objective value = "
 	objValDCCP += str(f_DCCP)
-	objValDCCP += "\n\n"
+	objValDCCP += " \n \n"
 	
-	maxVioDCCP = "DCCP max constraint violation = "
+	maxVioDCCP = " DCCP max constraint violation = "
 	maxVioDCCP += str(v_DCCP)
-	maxVioDCCP += "\n\n"
+	maxVioDCCP += " \n \n"
 	
 	out_file.write(ts)
 	out_file.write(tStp)
@@ -461,7 +461,7 @@ plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('ADMM Trajectory')
 plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
-plt.savefig('ADMMtraj.jpeg')
+plt.savefig('ADMMtraj.jpeg', dpi = 500)
 
 # ADMM y vs timeStep
 plt.figure()
@@ -471,7 +471,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('y [m]')
 plt.title('ADMM Y-axis')
-plt.savefig('ADMMy-axis.jpeg')
+plt.savefig('ADMMy-axis.jpeg', dpi = 500)
 
 # ADMM Velocity:
 plt.figure()
@@ -481,7 +481,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('V_{x} [m/s]')
 plt.title('ADMM Velocity')
-plt.savefig('ADMMvel.jpeg')
+plt.savefig('ADMMvel.jpeg', dpi = 500)
 
 # ADMM Acceleration:
 plt.figure()
@@ -492,7 +492,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('a [m/s^2]')
 plt.title('ADMM Acceleration')
-plt.savefig('ADMMacc.jpeg')
+plt.savefig('ADMMacc.jpeg', dpi = 500)
 
 
 # DCCP Trajectory:
@@ -512,7 +512,7 @@ plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('DCCP Trajectory')
 plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
-plt.savefig('DCCPtraj.jpeg')
+plt.savefig('DCCPtraj.jpeg', dpi = 500)
 
 # DCCP y vs timeStep
 plt.figure()
@@ -523,7 +523,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('y [m]')
 plt.title('DCCP Y-axis')
-plt.savefig('DCCPy-axis.jpeg')
+plt.savefig('DCCPy-axis.jpeg', dpi = 500)
 
 # DCCP Velocity:
 plt.figure()
@@ -534,7 +534,7 @@ plt.grid()
 plt.xlabel('time step')
 plt.ylabel('V_{x} [m/s]')
 plt.title('DCCP Velocity')
-plt.savefig('DCCPvel.jpeg')
+plt.savefig('DCCPvel.jpeg', dpi = 500)
 
 # DCCP Acceleration:
 plt.figure()
@@ -544,7 +544,10 @@ plt.grid()
 # plt.axis('equal')
 plt.xlabel('time step')
 plt.ylabel('a [m/s^2]')
+
 plt.title('DCCP Acceleration')
+mng = plt.get_current_fig_manager()
+mng.full_screen_toggle()
 plt.savefig('DCCPacc.jpeg')
 
 plt.show()
