@@ -525,6 +525,7 @@ plt.ylabel('y [m]')
 plt.title('DCCP Y-axis')
 plt.savefig('DCCPy-axis.jpeg', dpi = 500)
 
+
 # DCCP Velocity:
 plt.figure()
 plt.plot(timeStepVector[0],velM_DCCP[0],'.r-')
@@ -546,8 +547,6 @@ plt.xlabel('time step')
 plt.ylabel('a [m/s^2]')
 
 plt.title('DCCP Acceleration')
-mng = plt.get_current_fig_manager()
-mng.full_screen_toggle()
-plt.savefig('DCCPacc.jpeg')
+plt.savefig('DCCPacc.jpeg', dpi = 500)
 
 plt.show()
