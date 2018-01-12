@@ -9,15 +9,15 @@ import mosek
 import time
 
 
-timeStep = 20
+timeStep = 17
 Ts = .5 # sec !!! 
 
 # laneLength = 2*eps + d
 d = 2 # m
 eps = .25 # m
 
-alpha = .001
-beta = .01
+alpha = .0001
+beta = .1
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
@@ -303,7 +303,7 @@ tStSugDCCP = time.time()
 qcqp.suggest(SDR, solver=cvx.MOSEK)
 sdrSugDCCP = qcqp.sdr_bound
 tEnSugDCCP = time.time()
-tDiffSugDCCP = tEnSugADMM - tStSugADMM
+tDiffSugDCCP = tEnSugDCCP - tStSugDCCP
 print("DCCP; SDR-based lower bound = %.3f , duration [sec] = %.5f " % (sdrSugDCCP, tDiffSugDCCP))
 
 # Attempt to improve the starting point given by the suggest method
@@ -342,11 +342,20 @@ with open("readMe.txt", "w") as out_file:
 	
 	tStp = " timeStep = "
 	tStp += str(timeStep)
-	tStp += "\n \n"
+	tStp += " \n \n"
 	
 	diameter = " d = "
 	diameter += str(d)
 	diameter += " \n \n"
+	
+	_alfa = " Alpha = "
+	_alfa += str(alpha)
+	_alfa += " \n \n"
+	
+	_beta = " Beta = "
+	_beta += str(beta)
+	_beta += " \n \n"
+	
 	
 	timeSuggestADMM = " ADMM suggest duration [sec] = "
 	timeSuggestADMM += str(tDiffSugADMM)
@@ -355,6 +364,10 @@ with open("readMe.txt", "w") as out_file:
 	lwBoundADMM = " ADMM suggest SDR lower bound = "
 	lwBoundADMM += str(sdrSugADMM)
 	lwBoundADMM += "\n \n"
+	
+	tImpADMM = " ADMM improve duration [sec] = "
+	tImpADMM += str(tDiffImpADMM)
+	tImpADMM += "\n \n"
 	
 	objValADMM = " ADMM: objective value = "
 	objValADMM += str(f_ADMM)
@@ -372,6 +385,10 @@ with open("readMe.txt", "w") as out_file:
 	lwBoundDCCP += str(sdrSugDCCP)
 	lwBoundDCCP += " \n \n"
 	
+	tImpDCCP = " DCCP improve duration [sec] = "
+	tImpDCCP += str(tDiffImpDCCP)
+	tImpDCCP += " \n \n"
+	
 	objValDCCP = " DCCP: objective value = "
 	objValDCCP += str(f_DCCP)
 	objValDCCP += " \n \n"
@@ -383,14 +400,19 @@ with open("readMe.txt", "w") as out_file:
 	out_file.write(ts)
 	out_file.write(tStp)
 	out_file.write(diameter)
+
+	out_file.write(_alfa)
+	out_file.write(_beta)
 	
 	out_file.write(timeSuggestADMM)
 	out_file.write(lwBoundADMM)
+	out_file.write(tImpADMM)
 	out_file.write(objValADMM)
 	out_file.write(maxVioADMM)
 	
 	out_file.write(timeSuggestDCCP)
 	out_file.write(lwBoundDCCP)
+	out_file.write(tImpDCCP)
 	out_file.write(objValDCCP)
 	out_file.write(maxVioDCCP)
 	
