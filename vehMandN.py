@@ -398,6 +398,7 @@ with open("readMe.txt", "w") as out_file:
 # --------------------------- Plotting ------------------------------
 circ = np.linspace(0, 2*np.pi)
 
+
 # # CD Trajectory:
 # plt.figure()
 # for idx in range(timeStep+1):
