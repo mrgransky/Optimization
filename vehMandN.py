@@ -9,14 +9,14 @@ import mosek
 import time
 
 
-timeStep = 17
+timeStep = 20
 Ts = .5 # sec !!! 
 
 # laneLength = 2*eps + d
 d = 2 # m
 eps = .25 # m
 
-alpha = .0001
+alpha = .001
 beta = .01
 
 # max & min Velocities for vehicle M
