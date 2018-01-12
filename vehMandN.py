@@ -2,13 +2,11 @@ import matplotlib
 matplotlib.use('Agg')
 
 
-
-
 import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
 # matplotlib.use('Agg')
 from qcqp import *
 import mosek
-timeStep = 10
+timeStep = 30
 Ts = .5 # sec !!! 
 
 # laneLength = 2*eps + d
