@@ -326,7 +326,6 @@ for iM in range(timeStep+1):
 for iM in range(timeStep+1):
 	velM_DCCP[0][iM] = xDCCP[(5*iM)+1]
 	
-	
 # Vehicle M Acceleration, DCCP improve:
 for iM in range(timeStep):
 	accM_DCCP[0][iM] = xDCCP[(5*iM)+3]
