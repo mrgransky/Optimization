@@ -5,15 +5,15 @@ import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
 from qcqp import *
 import mosek
 import time
- 
-timeStep = 24
-Ts = 1.2 # sec !!! 
+
+timeStep = 25
+Ts = .5 # sec !!! 
 # laneLength = 2*eps + d
 d = 3 # m
 eps = .25 # m
 
-alpha = .01
-beta = .01
+alpha = .0001
+beta = 1
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
@@ -74,7 +74,7 @@ vehicleN[0,0] = Xninit
 vehicleN[1,0] = Yninit
 
 # vehicle 'm' Initial Condition:
-Xminit, Vminit, Yminit , amInit, VymInit = 0,25,(eps+d/2),0,0
+Xminit, Vminit, Yminit , amInit, VymInit = 0,28,(eps+d/2),0,0
 
 # Longitudinal Velocity V_x
 # velM_ADMM[0][0], velM_CD[0][0], velM_DCCP[0][0] = Vminit, Vminit, Vminit
@@ -311,6 +311,10 @@ with open("readMe.txt", "w") as out_file:
 	_beta += str(beta)
 	_beta += " \n \n"
 	
+	velMinit = "Vm_init = "
+	velMinit += str(Vminit)
+	velMinit += " \n \n "
+	
 	timeSuggestADMM = " ADMM suggest duration [sec] = "
 	timeSuggestADMM += str(tDiffSugADMM)
 	timeSuggestADMM += "\n\n"
@@ -357,6 +361,7 @@ with open("readMe.txt", "w") as out_file:
 
 	out_file.write(_alfa)
 	out_file.write(_beta)
+	out_file.write(velMinit)
 	
 	out_file.write(timeSuggestADMM)
 	out_file.write(lwBoundADMM)
