@@ -6,14 +6,14 @@ from qcqp import *
 import mosek
 import time
  
-timeStep = 17
-Ts = .1 # sec !!! 
+timeStep = 24
+Ts = 1.2 # sec !!! 
 # laneLength = 2*eps + d
-d = 2 # m
+d = 3 # m
 eps = .25 # m
 
-alpha = .001
-beta = .1
+alpha = .01
+beta = .01
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
