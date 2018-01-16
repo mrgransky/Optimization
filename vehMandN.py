@@ -2,21 +2,29 @@ import matplotlib
 matplotlib.use('Agg')
 
 import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
-# matplotlib.use('Agg')
 from qcqp import *
 import mosek
 import time
 
+<<<<<<< HEAD
+timeStep = 17
+Ts = .5 # sec !!! 
+=======
 timeStep = 24
 Ts = .1 # sec !!! 
 
+>>>>>>> 8f243e8caaaa4f104aa3fc9a5df648f23e7341de
 
 # laneLength = 2*eps + d
 d = 1 # m
 eps = .25 # m
 
+alpha = 0
+beta = 0
+=======
 alpha = .1
 beta = .1
+>>>>>>> 8f243e8caaaa4f104aa3fc9a5df648f23e7341de
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
@@ -202,6 +210,18 @@ tDiffProb = tProbEn - tProbSt
 print "Problem formulation time [sec] = ", tDiffProb
 
 
+<<<<<<< HEAD
+print "----------------- Program is starting ----------------"
+
+# qcqp.suggest(SPECTRAL)
+# print("Spectral-based lower bound: %.3f" % qcqp.spectral_bound)
+
+# ----------------------- Coordinate Decent (CD): -------------------------
+
+
+# ----------------------- (ADMM): -------------------------
+
+=======
 print "----------------- Improvement is starting ----------------"
 
 # tStSugCD = time.time()
@@ -246,6 +266,7 @@ print "----------------- Improvement is starting ----------------"
 # print "accM_CD: ", accM_CD
 
 # # ----------- alternating directions method of multipliers (ADMM): -----------
+>>>>>>> 8f243e8caaaa4f104aa3fc9a5df648f23e7341de
 tStSugADMM = time.time()
 # suggest method : SDR for ADMM
 qcqp.suggest(SDR, solver=cvx.MOSEK)
@@ -290,7 +311,11 @@ print "poseM_ADMM: ", poseM_ADMM
 print "VelM_ADMM: ", velM_ADMM
 print "accM_ADMM: ", accM_ADMM
 
+<<<<<<< HEAD
+# ----------------------- (DCCP): -------------------------
+=======
 # ----------------------(DCCP): -------------------------
+>>>>>>> 8f243e8caaaa4f104aa3fc9a5df648f23e7341de
 tStSugDCCP = time.time()
 # suggest method : SDR DCCP
 qcqp.suggest(SDR, solver=cvx.MOSEK)
@@ -391,7 +416,7 @@ with open("readMe.txt", "w") as out_file:
 	objValADMM += str(f_ADMM)
 	objValADMM += " \n \n"
 	
-	maxVioADMM = "ADMM: max constraint violation = "
+	maxVioADMM = " ADMM: max constraint violation = "
 	maxVioADMM += str(v_ADMM)
 	maxVioADMM += " \n \n"
 	
@@ -438,6 +463,9 @@ with open("readMe.txt", "w") as out_file:
 # --------------------------- Plotting ------------------------------
 circ = np.linspace(0, 2*np.pi)
 
+<<<<<<< HEAD
+# CD Trajectory:
+=======
 # # CD Trajectory:
 # plt.figure()
 # for idx in range(timeStep+1):
@@ -488,6 +516,7 @@ circ = np.linspace(0, 2*np.pi)
 # plt.title('CD Acceleration')
 # plt.savefig('CDacc.jpeg', dpi = 600)
 
+>>>>>>> 8f243e8caaaa4f104aa3fc9a5df648f23e7341de
 
 # ADMM Trajectory:
 plt.figure()
@@ -506,7 +535,11 @@ plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('ADMM Trajectory')
 # plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
+<<<<<<< HEAD
+plt.savefig('ADMMtraj.jpeg', dpi = 500)
+=======
 plt.savefig('ADMMtraj.jpeg', dpi = 600)
+>>>>>>> 8f243e8caaaa4f104aa3fc9a5df648f23e7341de
 
 # ADMM y vs timeStep
 plt.figure()
@@ -567,7 +600,11 @@ plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('DCCP Trajectory')
 # plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
+<<<<<<< HEAD
+plt.savefig('DCCPtraj.jpeg', dpi = 500)
+=======
 plt.savefig('DCCPtraj.jpeg', dpi = 600)
+>>>>>>> 8f243e8caaaa4f104aa3fc9a5df648f23e7341de
 
 # DCCP y vs timeStep
 plt.figure()
