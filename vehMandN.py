@@ -3,21 +3,19 @@ matplotlib.use('Agg')
 
 
 import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
-# matplotlib.use('Agg')
 from qcqp import *
 import mosek
 import time
 
-
-timeStep = 20
+timeStep = 17
 Ts = .5 # sec !!! 
 
 # laneLength = 2*eps + d
 d = 2 # m
 eps = .25 # m
 
-alpha = .001
-beta = .01
+alpha = 0
+beta = 0
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
@@ -219,42 +217,10 @@ print "----------------- Program is starting ----------------"
 # qcqp.suggest(SPECTRAL)
 # print("Spectral-based lower bound: %.3f" % qcqp.spectral_bound)
 
-# # # # ----------------------- Coordinate Decent (CD): -------------------------
-
-# # suggest method : SDR
-# qcqp.suggest(SDR, solver=cvx.MOSEK)
-# sdrSug = qcqp.sdr_bound
-# print("SDR-based lower bound: %.3f" % sdrSug)
-
-# # Attempt to improve the starting point given by the suggest method
-# f_cd, v_cd = qcqp.improve(COORD_DESCENT)
-# print("CD: objective value = %.3f, max constraint violation = %.3f" % (f_cd, v_cd))
-
-# xCD = np.copy(X.value)
-# print "xCD = ", xCD
-
-# # Vehicle M Position, CD improve:
-# for iM in range(timeStep+1):
-	# poseM_CD[0][iM] = xCD[5*iM]
-	# poseM_CD[1][iM] = xCD[(5*iM)+2]
+# ----------------------- Coordinate Decent (CD): -------------------------
 
 
-# # Vehicle M Velocity, CD improve:
-# for iM in range(timeStep+1):
-	# velM_CD[0][iM] = xCD[(5*iM)+1]
-	# # velM_ADMM[1][iM] = xADMM[(5*iM)+4]
-
-# # Vehicle M Acceleration, CD improve:
-# for iM in range(timeStep):
-	# accM_CD[0][iM+1] = xCD[(5*iM)+3]
-
-	
-# print "VehN: ", vehicleN
-# print "poseM_CD: ", poseM_CD
-# print "VelM_CD: ", velM_CD
-# print "accM_CD: ", accM_CD
-
-# ----------------------- Coordinate Decent (ADMM): -------------------------
+# ----------------------- (ADMM): -------------------------
 
 tStSugADMM = time.time()
 # suggest method : SDR for ADMM
@@ -297,13 +263,13 @@ print "poseM_ADMM: ", poseM_ADMM
 print "VelM_ADMM: ", velM_ADMM
 print "accM_ADMM: ", accM_ADMM
 
-# ----------------------- Coordinate Decent (DCCP): -------------------------
+# ----------------------- (DCCP): -------------------------
 tStSugDCCP = time.time()
 # suggest method : SDR DCCP
 qcqp.suggest(SDR, solver=cvx.MOSEK)
 sdrSugDCCP = qcqp.sdr_bound
 tEnSugDCCP = time.time()
-tDiffSugDCCP = tEnSugADMM - tStSugADMM
+tDiffSugDCCP = tEnSugDCCP - tStSugDCCP
 print("DCCP; SDR-based lower bound = %.3f , duration [sec] = %.5f " % (sdrSugDCCP, tDiffSugDCCP))
 
 # Attempt to improve the starting point given by the suggest method
@@ -360,7 +326,7 @@ with open("readMe.txt", "w") as out_file:
 	objValADMM += str(f_ADMM)
 	objValADMM += " \n \n"
 	
-	maxVioADMM = "ADMM: max constraint violation = "
+	maxVioADMM = " ADMM: max constraint violation = "
 	maxVioADMM += str(v_ADMM)
 	maxVioADMM += " \n \n"
 	
@@ -398,51 +364,7 @@ with open("readMe.txt", "w") as out_file:
 # --------------------------- Plotting ------------------------------
 circ = np.linspace(0, 2*np.pi)
 
-
-# # CD Trajectory:
-# plt.figure()
-# for idx in range(timeStep+1):
-	# if idx == 0: # initial positions for vehicle 'm' & 'n':
-		# plt.plot(xCD[idx]+(d/2)*np.cos(circ),xCD[idx+2]+(d/2)*np.sin(circ), 'c')
-		# plt.plot(vehicleN[0][idx]+(d/2)*np.cos(circ),vehicleN[1][idx]+(d/2)*np.sin(circ), 'm')
-	# else:
-		# tmp = idx
-		# plt.plot(xCD[5*tmp]+(d/2)*np.cos(circ),xCD[(5*tmp)+2]+(d/2)*np.sin(circ), 'b')
-		# plt.plot(vehicleN[0][tmp]+(d/2)*np.cos(circ),vehicleN[1][tmp]+(d/2)*np.sin(circ), 'r')
-		
-# plt.grid()
-# plt.axis([-2, 34, 0, 35])
-# plt.xlabel('X [m]')
-# plt.ylabel('Y [m]')
-# plt.title('CD Trajectory')
-# plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
-
-# # CD y vs timeStep
-# plt.figure()
-# plt.plot(timeStepVector[0],poseM_CD[1],'.g-')
-# plt.grid()
-# # plt.axis('equal')
-# plt.xlabel('time step')
-# plt.ylabel('y [m]')
-# plt.title('CD Y-axis')
-
-# # CD Velocity:
-# plt.figure()
-# plt.plot(timeStepVector[0],velM_CD[0],'.r-')
-# plt.grid()
-# # plt.axis('equal')
-# plt.xlabel('time step')
-# plt.ylabel('V_{x} [m/s]')
-# plt.title('CD Velocity')
-
-# # CD Acceleration:
-# plt.figure()
-# plt.plot(timeStepVector[0],accM_CD[0],'xb-')
-# plt.grid()
-# # plt.axis('equal')
-# plt.xlabel('time step')
-# plt.ylabel('a [m/s^2]')
-# plt.title('CD Acceleration')
+# CD Trajectory:
 
 # ADMM Trajectory:
 plt.figure()
@@ -460,7 +382,7 @@ plt.grid()
 plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('ADMM Trajectory')
-plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
+# plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
 plt.savefig('ADMMtraj.jpeg', dpi = 500)
 
 # ADMM y vs timeStep
@@ -511,7 +433,7 @@ plt.grid()
 plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
 plt.title('DCCP Trajectory')
-plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
+# plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
 plt.savefig('DCCPtraj.jpeg', dpi = 500)
 
 # DCCP y vs timeStep
