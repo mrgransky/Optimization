@@ -1,0 +1,62 @@
+Ts = 1 
+ 
+ K = 30 
+ 
+ d = 3 
+ 
+ Alpha = 55 
+ 
+ Beta = 3 
+ 
+Vm_init = 16 
+ 
+ VnInit = 16 
+ 
+ Initial XPose Vehicle M = 0 
+ 
+ Initial XPose Vehicle N = 20 
+ 
+  ADMM suggest duration [sec] = 1578.003829
+
+ ADMM suggest SDR lower bound = -519.236956566
+ 
+ ADMM improve duration [sec] = 1296.28046918
+ 
+ ADMM: objective value = -5.514553044948002 
+ 
+ ADMM: max constraint violation = 7.9245256650375495 
+ 
+
+
+no .5 coefficient for objecive and constraint functions!
+no prev r_c
+rc[ 1 ] =  -1290.0625
+rc[ 2 ] =  -2698.0625
+rc[ 3 ] =  -4618.0625
+rc[ 4 ] =  -7050.0625
+rc[ 5 ] =  -9994.0625
+rc[ 6 ] =  -13450.0625
+rc[ 7 ] =  -17418.0625
+rc[ 8 ] =  -21898.0625
+rc[ 9 ] =  -26890.0625
+rc[ 10 ] =  -32394.0625
+rc[ 11 ] =  -38410.0625
+rc[ 12 ] =  -44938.0625
+rc[ 13 ] =  -51978.0625
+rc[ 14 ] =  -59530.0625
+rc[ 15 ] =  -67594.0625
+rc[ 16 ] =  -76170.0625
+rc[ 17 ] =  -85258.0625
+rc[ 18 ] =  -94858.0625
+rc[ 19 ] =  -104970.0625
+rc[ 20 ] =  -115594.0625
+rc[ 21 ] =  -126730.0625
+rc[ 22 ] =  -138378.0625
+rc[ 23 ] =  -150538.0625
+rc[ 24 ] =  -163210.0625
+rc[ 25 ] =  -176394.0625
+rc[ 26 ] =  -190090.0625
+rc[ 27 ] =  -204298.0625
+rc[ 28 ] =  -219018.0625
+rc[ 29 ] =  -234250.0625
+rc[ 30 ] =  -249994.0625

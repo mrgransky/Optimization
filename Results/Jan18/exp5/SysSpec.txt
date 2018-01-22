@@ -1,0 +1,28 @@
+Ts = 0.5 
+ 
+ K = 30 
+ 
+ d = 3 
+ 
+ Alpha = 150 
+ 
+ Beta = 75 
+ 
+Vm_init = 10 
+ 
+ Initial XPose Vehicle M = 0 
+ 
+ Initial XPose Vehicle N = 20 
+ 
+ VnInit = 10 
+ 
+  ADMM suggest duration [sec] = 963.937840939
+
+ ADMM suggest SDR lower bound = -151.869823964
+ 
+ ADMM improve duration [sec] = 545.510244131
+ 
+ ADMM: objective value = -152.1051797686648 
+ 
+ ADMM: max constraint violation = 3.948079194579634 
+ 

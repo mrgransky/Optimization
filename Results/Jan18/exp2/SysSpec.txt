@@ -1,0 +1,22 @@
+Ts = 1 
+ 
+ K = 30 
+ 
+ d = 3 
+ 
+ Alpha = 100 
+ 
+ Beta = 50 
+ 
+Vm_init = 13 
+ 
+  ADMM suggest duration [sec] = 1468.19980812
+
+ ADMM suggest SDR lower bound = -434.984928294
+ 
+ ADMM improve duration [sec] = 597.055437088
+ 
+ ADMM: objective value = -58.703980546383036 
+ 
+ ADMM: max constraint violation = 2.3969889330446676 
+ 

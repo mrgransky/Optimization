@@ -1,3 +1,4 @@
+from __future__ import division
 import matplotlib
 matplotlib.use('Agg')
 
@@ -6,33 +7,40 @@ from qcqp import *
 import mosek
 import time
 
-timeStep = 25
-Ts = .5 # sec !!! 
+# ------------------------------- #
+# Simulation time [sec] = K * Ts 
+simTime = 4 # sec
+Ts = 1 # sec !!!
+K = simTime/Ts
+
+print "K = " , K
+
+# ------------------------------- #
 # laneLength = 2*eps + d
 d = 3 # m
 eps = .25 # m
 
-alpha = .0001
-beta = 1
+alpha = 55
+beta = 3
 
 # max & min Velocities for vehicle M
 Vmax = 30 # m/s
-Vmin = 0 # m/s
+Vmin = 16 # m/s
 
 # max & min Y-pos for vehicle M
-Ymax = 2*d # m
-Ymin = 4*eps # m
+Ymax = 2*d +4*eps # m
+Ymin = eps + d/2 # m
 
 # max & min y-axis for vehicle M
 aMax = 5 # m/s^2
 aMin = -5 # m/s^2
 
 rowVeh = 2
-colVeh = timeStep +1  # initial pose + timeStep positions
+colVeh = K +1  # initial pose + K positions
 
-timeStepVector = np.zeros((1,timeStep + 1),dtype=float)
-for j in range(timeStep+1):
-	timeStepVector[0][j] = j 
+KVector = np.zeros((1,K + 1),dtype=float)
+for j in range(K+1):
+	KVector[0][j] = j
 
 # Initialize matrices
 vehicleN = np.zeros((rowVeh,colVeh),dtype=float)
@@ -45,48 +53,50 @@ poseM_ADMM = np.zeros((rowVeh,colVeh),dtype=float)
 # Velocity of vehicle M:
 velM_CD = np.zeros((rowVeh,colVeh),dtype=float)
 velM_DCCP = np.zeros((rowVeh,colVeh),dtype=float)
-velM_ADMM = np.zeros((rowVeh,colVeh),dtype=float)
+# velM_ADMM = np.zeros((rowVeh,colVeh),dtype=float)
+velM_ADMMLong = np.zeros((1,K+1),dtype=float)
+velM_ADMMLat = np.zeros((1,K),dtype=float)
 
 
 # Acceleration ( Longitudinal & Lateral ) of vehicle M:
-accM_CD = np.zeros((rowVeh,timeStep),dtype=float)
-accM_DCCP = np.zeros((rowVeh,timeStep),dtype=float)
-accM_ADMM = np.zeros((rowVeh,timeStep),dtype=float)
+accM_CD = np.zeros((rowVeh,K),dtype=float)
+accM_DCCP = np.zeros((rowVeh,K),dtype=float)
+accM_ADMM = np.zeros((1,K),dtype=float)
 
-tStpVec = np.zeros((1,timeStep),dtype=float)
-for idxj in range(timeStep):
+tStpVec = np.zeros((1,K),dtype=float)
+for idxj in range(K):
 	tStpVec[0][idxj] = idxj 
 
-X = cvx.Variable(5*timeStep+3)
-P0 = np.zeros((5*timeStep+3,5*timeStep+3),dtype=float)
-q_obj = np.zeros((5*timeStep+3,1),dtype=float)
+X = cvx.Variable(5*K+3)
+P0 = np.zeros((5*K+3,5*K+3),dtype=float)
+q_obj = np.zeros((5*K+3,1),dtype=float)
 
-A = np.zeros((3*timeStep+3,5*timeStep+3),dtype=float)
-b = np.zeros((3*timeStep+3,1),dtype=float)
+A = np.zeros((3*K+3,5*K+3),dtype=float)
+b = np.zeros((3*K+3,1),dtype=float)
 
 
 # y_n = eps + d/2
 # y_m = eps + d/2
 
 # position of vehicle 'n':
-Xninit, Vninit, Yninit = 7,20,(eps+d/2)
-vehicleN[0,0] = Xninit
-vehicleN[1,0] = Yninit
+Xninit, Vninit, Yninit = 20,Vmin,(eps + d/2)
+vehicleN[0][0] = Xninit
+vehicleN[1][0] = Yninit
 
 # vehicle 'm' Initial Condition:
-Xminit, Vminit, Yminit , amInit, VymInit = 0,28,(eps+d/2),0,0
+Xminit, Vminit, Yminit , amInit, VymInit = 0,Vmin,(eps+d/2),0,0
 
 # Longitudinal Velocity V_x
 # velM_ADMM[0][0], velM_CD[0][0], velM_DCCP[0][0] = Vminit, Vminit, Vminit
 
 # Lateral Velocity V_y
-velM_ADMM[1][0], velM_CD[1][0], velM_DCCP[1][0] = VymInit, VymInit, VymInit
+velM_ADMMLat[0][0], velM_CD[1][0], velM_DCCP[1][0] = VymInit, VymInit, VymInit
 
 # Longitudinal Acceleration a_x !!!!!!!!!!!!!!!!!!??????????
 accM_ADMM[0][0], accM_CD[0][0], accM_DCCP[0][0] = amInit, amInit, amInit
 
 # Lateral Acceleration a_y (not Interested!!)
-accM_ADMM[1][0], accM_CD[1][0], accM_DCCP[1][0] = 0,0,0 # Zero lateral acceleration 
+accM_ADMM[0][0], accM_CD[1][0], accM_DCCP[1][0] = 0,0,0 # Zero lateral acceleration 
 
 vehMInit = ([
 		[Xminit],[Vminit],[Yminit]
@@ -101,7 +111,7 @@ for i in range(rowVeh):
 			vehicleN[i][j] = Yninit
 		else:
 			vehicleN[i][j] =  (Vninit * Ts) + posNprev # Xn = Vn*Ts + XnPrev!
-			posNprev = vehicleN[i][j] # update the Xn based on previous timeStep
+			posNprev = vehicleN[i][j] # update the Xn based on previous K
 		
 # objective function: 
 # System model:
@@ -116,21 +126,20 @@ Bmodel = np.matrix([[-.5*(Ts**2),0],
 Cmodel = np.identity(3)
 
 
-for i in range(timeStep):
+for i in range(K):
 	P0[5*(i+1)-2,5*(i+1)-2] = alpha
 	P0[5*(i+1)-1,5*(i+1)-1] = beta
 # P_obj = .5*(P0+P0.T)
 P_obj = P0
 # print "P_obj = ", P_obj
 
-q_obj[5*timeStep,0] = -1
+q_obj[5*K,0] = -1
 # print "q_obj = ", q_obj
 
 r_obj = Xminit
 	
-objective = cvx.Minimize(.5*cvx.quad_form(X,P_obj) + q_obj.T*X  + r_obj)
+objective = cvx.Minimize(cvx.quad_form(X,P_obj) + q_obj.T*X  + r_obj)
 # -------------------------------------------------------------------	
-
 # -------------------------- Constraints --------------------------
 consTot = []
 
@@ -140,7 +149,7 @@ for i in range(len(vehMInit)): # needs to be modified!!!!
 	A[i,i] = 1
 
 colA = 0
-for rowA in range(len(vehMInit),3*timeStep+3,3):
+for rowA in range(len(vehMInit),3*K+3,3):
 	A[rowA:rowA+3,colA:colA+3] = Amodel
 	colA = colA+3
 	A[rowA:rowA+3,colA:colA+2] = Bmodel
@@ -150,18 +159,18 @@ for rowA in range(len(vehMInit),3*timeStep+3,3):
 consTot.append(A*X == b)
 
 # Constraint for Velocity
-for j in range(timeStep):
+for j in range(K):
 	tmpIdx = j+1
 	consTot.append(X[(5*tmpIdx)+1] <= Vmax)
 	consTot.append(X[(5*tmpIdx)+1] >= Vmin)
 
 # Constraint for Y-axis	
-for j in range(timeStep):
+for j in range(K):
 	tmpIdx = j+1
 	consTot.append(X[(5*tmpIdx)+2] <= Ymax)
 	consTot.append(X[(5*tmpIdx)+2] >= Ymin)
 
-for j in range(timeStep):
+for j in range(K):
 	tmpIdx = j
 	consTot.append(X[(5*tmpIdx)+3] <= aMax)
 	consTot.append(X[(5*tmpIdx)+3] >= aMin)
@@ -169,19 +178,20 @@ for j in range(timeStep):
 # -------------- Quadratic Constraint -----------------
 prev_rc = 0
 # Quadratic Constraint:
-for t in range(timeStep):
-	q_c = np.zeros((5*timeStep+3,1),dtype=float)
-	P_c = np.zeros((5*timeStep+3,5*timeStep+3),dtype=float)
-	tmp = t+1 # initial state is excluded from constraints while last timeStep is included!
+for t in range(K):
+	q_c = np.zeros((5*K+3,1),dtype=float)
+	P_c = np.zeros((5*K+3,5*K+3),dtype=float)
+	tmp = t+1 # initial state is excluded from constraints while last K is included!
 	P_c[5*tmp,5*tmp] = -2
 	P_c[(5*tmp)+2,(5*tmp)+2] = -2
 
 	q_c[5*tmp] = 2*vehicleN[0][tmp]
 	q_c[(5*tmp)+2] = 2*vehicleN[1][tmp]
 	r_c = d**2 - (vehicleN[0][tmp])**2 - (vehicleN[1][tmp])**2 + prev_rc
-	prev_rc = r_c
+	print "rc[", tmp, "] = ",r_c
+	# prev_rc = r_c
 	# P_c = .5*(P_c+P_c.T)
-	consTot.append(.5*cvx.quad_form(X,P_c) + q_c.T*X + r_c <= 0)
+	consTot.append(cvx.quad_form(X,P_c) + q_c.T*X + r_c <= 0)
 
 
 # print "P_c = ", P_c
@@ -193,24 +203,33 @@ tProbSt = time.time()
 
 prob = cvx.Problem(objective, consTot)
 qcqp = QCQP(prob)
-
 tProbEn = time.time()
 tDiffProb = tProbEn - tProbSt
 
 print "Problem formulation time [sec] = ", tDiffProb
 
-
-
 # # ----------- alternating directions method of multipliers (ADMM): -----------
+# ------------ Suggest; ADMM ------------
 tStSugADMM = time.time()
-# suggest method : SDR for ADMM
+
 qcqp.suggest(SDR, solver=cvx.MOSEK)
+
 sdrSugADMM = qcqp.sdr_bound
+sdrSugSol = qcqp.sdr_sol
+
 tEnSugADMM = time.time()
+
 tDiffSugADMM = tEnSugADMM - tStSugADMM
+
+xSugADMM = np.copy(X.value)
+# print "xADMM Suggest = ", xSugADMM
+
+# print "sdr_sol = ", sdrSugSol
+# print "ttteemmp = ", sdrSugSol[:-1, -1]
+
 print("ADMM; SDR-based lower bound = %.3f, duration [sec] = %.5f " % (sdrSugADMM, tDiffSugADMM))
 
-# Attempt to improve the starting point given by the suggest method
+# ------------ Improve ADMM: ------------
 tStImpADMM = time.time()
 
 f_ADMM, v_ADMM = qcqp.improve(ADMM)
@@ -225,78 +244,38 @@ print "xADMM = ", xADMM
 
 
 # Vehicle M Position, ADMM improve:
-for iM in range(timeStep+1):
+for iM in range(K+1):
 	poseM_ADMM[0][iM] = xADMM[5*iM]
 	poseM_ADMM[1][iM] = xADMM[(5*iM)+2]
 
 # Vehicle M Velocity, ADMM improve:
-for iM in range(timeStep+1):
-	velM_ADMM[0][iM] = xADMM[(5*iM)+1]
+for iM in range(K+1):
+	velM_ADMMLong[0][iM] = xADMM[(5*iM)+1]
 
-for iMvel in range(timeStep):
-	velM_ADMM[1][iMvel] = xADMM[5*iMvel+4]
+for iMvel in range(K):
+	velM_ADMMLat[0][iMvel] = xADMM[5*iMvel+4]
 	
 # Vehicle M Acceleration, ADMM improve:
-for iM in range(timeStep):
+for iM in range(K):
 	accM_ADMM[0][iM] = xADMM[(5*iM)+3]
 
 
 print "Vehicle N: ", vehicleN
 print "poseM_ADMM: ", poseM_ADMM
-print "VelM_ADMM: ", velM_ADMM
+print "VelM_ADMM Longitudinal = ", velM_ADMMLong
+print "VelM_ADMM Lateral = ", velM_ADMMLat
 print "accM_ADMM: ", accM_ADMM
 
-# ----------------------- (DCCP): -------------------------
+# # ----------------------- (DCCP): -------------------------
+# # ----------------------------------------
 
-tStSugDCCP = time.time()
-# suggest method : SDR DCCP
-qcqp.suggest(SDR, solver=cvx.MOSEK)
-sdrSugDCCP = qcqp.sdr_bound
-tEnSugDCCP = time.time()
-tDiffSugDCCP = tEnSugDCCP - tStSugDCCP
-print("DCCP; SDR-based lower bound = %.3f , duration [sec] = %.5f " % (sdrSugDCCP, tDiffSugDCCP))
-
-# Attempt to improve the starting point given by the suggest method
-tStImpDCCP = time.time()
-f_DCCP, v_DCCP = qcqp.improve(DCCP)
-tEnImpDCCP = time.time()
-tDiffImpDCCP = tEnImpDCCP - tStImpDCCP 
-print("DCCP: objective value = %.3f, max constraint violation = %.3f , duration [sec] = %.5f " % (f_DCCP, v_DCCP, tDiffImpDCCP))
-xDCCP = np.copy(X.value)
-print "xDCCP = ", xDCCP
-
-
-# Vehicle M Position, DCCP improve:
-for iM in range(timeStep+1):
-	poseM_DCCP[0][iM] = xDCCP[5*iM]
-	poseM_DCCP[1][iM] = xDCCP[(5*iM)+2]
-	
-
-# Vehicle M Longitudinal Velocity, DCCP improve:
-for iM in range(timeStep+1):
-	velM_DCCP[0][iM] = xDCCP[(5*iM)+1]
-	
-# vehicle M Lateral velocity,
-for iMvel in range(timeStep):
-	velM_DCCP[1][iMvel] = xDCCP[5*iMvel+4]
-	
-# Vehicle M Acceleration, DCCP improve:
-for iM in range(timeStep):
-	accM_DCCP[0][iM] = xDCCP[(5*iM)+3]
-
-print "Vehicle N: ", vehicleN
-print "poseM_DCCP: ", poseM_DCCP
-print "VelM_DCCP: ", velM_DCCP
-print "accM_DCCP: ", accM_DCCP
-# ----------------------------------------
-
-with open("readMe.txt", "w") as out_file:
+with open("SysSpec.txt", "w") as out_file:
 	ts = "Ts = "
 	ts += str(Ts)
 	ts += " \n \n"
 	
-	tStp = " timeStep = "
-	tStp += str(timeStep)
+	tStp = " K = "
+	tStp += str(K)
 	tStp += " \n \n"
 	
 	diameter = " d = "
@@ -311,9 +290,22 @@ with open("readMe.txt", "w") as out_file:
 	_beta += str(beta)
 	_beta += " \n \n"
 	
+	xN = "Initial XPose Vehicle N = "
+	xN += str(Xninit)
+	xN += " \n \n "
+	
+	xM = "Initial XPose Vehicle M = "
+	xM += str(Xminit)
+	xM += " \n \n "
+	
 	velMinit = "Vm_init = "
 	velMinit += str(Vminit)
 	velMinit += " \n \n "
+	
+	velNinit = "VnInit = "
+	velNinit += str(Vninit)
+	velNinit += " \n \n "
+	
 	
 	timeSuggestADMM = " ADMM suggest duration [sec] = "
 	timeSuggestADMM += str(tDiffSugADMM)
@@ -335,33 +327,19 @@ with open("readMe.txt", "w") as out_file:
 	maxVioADMM += str(v_ADMM)
 	maxVioADMM += " \n \n"
 	
-	timeSuggestDCCP = " DCCP suggest duration [sec] = "
-	timeSuggestDCCP += str(tDiffSugDCCP)
-	timeSuggestDCCP += " \n \n"
-	
-	lwBoundDCCP = " DCCP suggest SDR lower bound = "
-	lwBoundDCCP += str(sdrSugDCCP)
-	lwBoundDCCP += " \n \n"
-	
-	tImpDCCP = " DCCP improve duration [sec] = "
-	tImpDCCP += str(tDiffImpDCCP)
-	tImpDCCP += " \n \n"
-	
-	objValDCCP = " DCCP: objective value = "
-	objValDCCP += str(f_DCCP)
-	objValDCCP += " \n \n"
-	
-	maxVioDCCP = " DCCP max constraint violation = "
-	maxVioDCCP += str(v_DCCP)
-	maxVioDCCP += " \n \n"
-	
 	out_file.write(ts)
 	out_file.write(tStp)
 	out_file.write(diameter)
 
 	out_file.write(_alfa)
 	out_file.write(_beta)
+	
 	out_file.write(velMinit)
+	out_file.write(velNinit)
+	
+	out_file.write(xM)
+	out_file.write(xN)
+	
 	
 	out_file.write(timeSuggestADMM)
 	out_file.write(lwBoundADMM)
@@ -369,19 +347,56 @@ with open("readMe.txt", "w") as out_file:
 	out_file.write(objValADMM)
 	out_file.write(maxVioADMM)
 	
-	out_file.write(timeSuggestDCCP)
-	out_file.write(lwBoundDCCP)
-	out_file.write(tImpDCCP)
-	out_file.write(objValDCCP)
-	out_file.write(maxVioDCCP)
+	# out_file.write(timeSuggestDCCP)
+	# out_file.write(lwBoundDCCP)
+	# out_file.write(tImpDCCP)
+	# out_file.write(objValDCCP)
+	# out_file.write(maxVioDCCP)
 	
 
 # --------------------------- Plotting ------------------------------
 circ = np.linspace(0, 2*np.pi)
 
-# ADMM Trajectory:
+# Trajectory, Suggest:
 plt.figure()
-for idx in range(timeStep+1):
+for idx in range(K+1):
+	if idx == 0:
+		plt.plot(xSugADMM[idx]+(d/2)*np.cos(circ),xSugADMM[idx+2]+(d/2)*np.sin(circ), 'c')
+		plt.plot(vehicleN[0][idx]+(d/2)*np.cos(circ),vehicleN[1][idx]+(d/2)*np.sin(circ), 'm')
+	else:
+		tmp = idx
+		plt.plot(xSugADMM[5*tmp]+(d/2)*np.cos(circ),xSugADMM[(5*tmp)+2]+(d/2)*np.sin(circ), 'b')
+		plt.plot(vehicleN[0][tmp]+(d/2)*np.cos(circ),vehicleN[1][tmp]+(d/2)*np.sin(circ), 'r')
+		
+plt.grid()
+plt.xlabel('X [m]')
+plt.ylabel('Y [m]')
+plt.title('Trajectory based on Suggest')
+plt.savefig('trajSuggest.jpeg', dpi = 600)
+
+# ADMM Path, Improve:
+plt.figure()
+for idx in range(K+1):
+	if idx == 0:
+		plt.plot(poseM_ADMM[0][idx],poseM_ADMM[1][idx], 'oc')
+		plt.plot(vehicleN[0][idx],vehicleN[1][idx], 'om')
+	else:
+		# tmp = idx
+		plt.plot(poseM_ADMM[0][idx],poseM_ADMM[1][idx],'xb')
+		plt.plot(vehicleN[0][idx],vehicleN[1][idx], 'xr')
+		
+plt.grid()
+plt.xlabel('X [m]')
+plt.ylabel('Y [m]')
+plt.title('Path')
+plt.savefig('ADMMPath.jpeg', dpi = 600)
+
+
+
+
+# ADMM Trajectory, Improve:
+plt.figure()
+for idx in range(K+1):
 	if idx == 0:
 		plt.plot(xADMM[idx]+(d/2)*np.cos(circ),xADMM[idx+2]+(d/2)*np.sin(circ), 'c')
 		plt.plot(vehicleN[0][idx]+(d/2)*np.cos(circ),vehicleN[1][idx]+(d/2)*np.sin(circ), 'm')
@@ -393,23 +408,34 @@ for idx in range(timeStep+1):
 plt.grid()
 plt.xlabel('X [m]')
 plt.ylabel('Y [m]')
-plt.title('ADMM Trajectory')
-# plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
+plt.title('Trajectory based on ADMM Improve')
 plt.savefig('ADMMtraj.jpeg', dpi = 600)
 
-# ADMM y vs timeStep
+# ADMM y vs K
 plt.figure()
-plt.plot(timeStepVector[0],poseM_ADMM[1],'.g-')
+plt.plot(KVector[0],poseM_ADMM[1],'.y-')
 plt.grid()
 # plt.axis('equal')
-plt.xlabel('time step')
+plt.xlabel('time step (k)')
 plt.ylabel('y [m]')
 plt.title('ADMM Y-axis')
 plt.savefig('ADMMy-axis.jpeg', dpi = 600)
 
+# ADMM x-K
+plt.figure()
+plt.plot(KVector[0],poseM_ADMM[0],'.g-')
+plt.grid()
+# plt.axis('equal')
+plt.xlabel('time step (k)')
+plt.ylabel('x [m]')
+plt.title('ADMM X-axis')
+plt.savefig('ADMMx-axis.jpeg', dpi = 600)
+
+
+
 # ADMM Longitudinal Velocity:
 plt.figure()
-plt.plot(timeStepVector[0],velM_ADMM[0],'.r-')
+plt.plot(KVector[0],velM_ADMMLong[0],'.r-')
 plt.grid()
 # plt.axis('equal')
 plt.xlabel('time step')
@@ -417,12 +443,15 @@ plt.ylabel('V_{x} [m/s]')
 plt.title('ADMM Longitudinal Velocity')
 plt.savefig('ADMMvelLong.jpeg', dpi = 600)
 
+
+# print "tStp = ", tStpVec
+
 # ADMM Lateral Velocity:
 plt.figure()
-plt.plot(timeStepVector[0],velM_ADMM[1],'.k-')
+plt.plot(tStpVec[0],velM_ADMMLat[0],'.k-')
 plt.grid()
 # plt.axis('equal')
-plt.xlabel('time step')
+plt.xlabel('time step (k)')
 plt.ylabel('V_{y} [m/s]')
 plt.title('ADMM Lateral Velocity')
 plt.savefig('ADMMvelLat.jpeg', dpi = 600)
@@ -433,73 +462,11 @@ plt.plot(tStpVec[0],accM_ADMM[0],'xb-')
 
 plt.grid()
 # plt.axis('equal')
-plt.xlabel('time step')
+plt.xlabel('time step (k)')
 plt.ylabel('a [m/s^2]')
 plt.title('ADMM Acceleration')
 plt.savefig('ADMMacc.jpeg', dpi = 600)
 
-# DCCP Trajectory:
-plt.figure()
-for idx in range(timeStep+1):
-	if idx == 0:
-		plt.plot(xDCCP[idx]+(d/2)*np.cos(circ),xDCCP[idx+2]+(d/2)*np.sin(circ), 'c')
-		plt.plot(vehicleN[0][idx]+(d/2)*np.cos(circ),vehicleN[1][idx]+(d/2)*np.sin(circ), 'm')
-	else:
-		tmp = idx
-		plt.plot(xDCCP[5*tmp]+(d/2)*np.cos(circ),xDCCP[(5*tmp)+2]+(d/2)*np.sin(circ), 'b')
-		plt.plot(vehicleN[0][tmp]+(d/2)*np.cos(circ),vehicleN[1][tmp]+(d/2)*np.sin(circ), 'r')
-		
-plt.grid()
-plt.xlabel('X [m]')
-plt.ylabel('Y [m]')
-plt.title('DCCP Trajectory')
-# plt.legend(["Initial Vehicle m","Initial Vehicle n","Vehicle m","Vehicle n"])
-
-plt.savefig('DCCPtraj.jpeg', dpi = 600)
-
-# DCCP y vs timeStep
-plt.figure()
-plt.plot(timeStepVector[0],poseM_DCCP[1],'.g-')
-
-plt.grid()
-# plt.axis('equal')
-plt.xlabel('time step')
-plt.ylabel('y [m]')
-plt.title('DCCP Y-axis')
-plt.savefig('DCCPy-axis.jpeg', dpi = 600)
-
-# DCCP Longitudinal Velocity:
-plt.figure()
-plt.plot(timeStepVector[0],velM_DCCP[0],'.r-')
-plt.grid()
-# plt.axis('equal')
-plt.xlabel('time step')
-plt.ylabel('V_{x} [m/s]')
-plt.title('DCCP Longitudinal Velocity')
-plt.savefig('DCCPvelLong.jpeg', dpi = 600)
-
-
-# DCCP Lateral Velocity:
-plt.figure()
-plt.plot(timeStepVector[0],velM_DCCP[1],'.k-')
-plt.grid()
-# plt.axis('equal')
-plt.xlabel('time step')
-plt.ylabel('V_{y} [m/s]')
-plt.title('DCCP Lateral Velocity')
-plt.savefig('DCCPvelLat.jpeg', dpi = 600)
-
-
-# DCCP Acceleration:
-plt.figure()
-plt.plot(tStpVec[0],accM_DCCP[0],'xb-')
-
-plt.grid()
-# plt.axis('equal')
-plt.xlabel('time step')
-plt.ylabel('a [m/s^2]')
-
-plt.title('DCCP Acceleration')
-plt.savefig('DCCPacc.jpeg', dpi = 500)
-
+# # DCCP Trajectory:
+# -----------------------------------------
 plt.show()
