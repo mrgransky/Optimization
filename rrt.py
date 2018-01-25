@@ -4,13 +4,15 @@ Path Planning Sample Code with RRT*
 author: AtsushiSakai(@Atsushi_twi)
 
 """
-
+from __future__ import division
+import matplotlib
+matplotlib.use('Agg')
 import random
 import math
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
-
+import time
 show_animation = True
 
 
@@ -19,8 +21,7 @@ class RRT():
     Class for RRT Planning
     """
 
-    def __init__(self, start, goal, obstacleList, randArea,
-                 expandDis=0.5, goalSampleRate=20, maxIter=1000):
+    def __init__(self, start, goal, obstacleList, randArea, expandDis=0.5, goalSampleRate=20, maxIter=1000):
         """
         Setting Parameter
 
@@ -38,20 +39,21 @@ class RRT():
         self.goalSampleRate = goalSampleRate
         self.maxIter = maxIter
         self.obstacleList = obstacleList
-
+		
     def Planning(self, animation=True):
-        """
-        Pathplanning
-
-        animation: flag for animation on or off
-        """
-
         self.nodeList = [self.start]
-        for i in range(self.maxIter):
+		# print "nodeList = ", nodeList
+	for i in range(self.maxIter):
             rnd = self.get_random_point()
+			# print "random point Planning = ", rnd
             nind = self.GetNearestListIndex(self.nodeList, rnd)
+			
+			# print "nind = ", nind
 
             newNode = self.steer(rnd, nind)
+		
+
+		# print "new Node = ", newNode
             #  print(newNode.cost)
 
             if self.__CollisionCheck(newNode, self.obstacleList):
@@ -109,19 +111,15 @@ class RRT():
         return newNode
 
     def get_random_point(self):
-
         if random.randint(0, 100) > self.goalSampleRate:
-            rnd = [random.uniform(self.minrand, self.maxrand),
-                   random.uniform(self.minrand, self.maxrand)]
+            rnd = [random.uniform(self.minrand, self.maxrand), random.uniform(self.minrand, 2)]
         else:  # goal point sampling
             rnd = [self.end.x, self.end.y]
-
         return rnd
 
     def get_best_last_index(self):
 
-        disglist = [self.calc_dist_to_goal(
-            node.x, node.y) for node in self.nodeList]
+        disglist = [self.calc_dist_to_goal(node.x, node.y) for node in self.nodeList]
         goalinds = [disglist.index(i) for i in disglist if i <= self.expandDis]
         #  print(goalinds)
 
@@ -232,32 +230,28 @@ class Node():
         self.cost = 0.0
         self.parent = None
 
-
 def main():
-    print("Start rrt planning")
-
+ tStart = time.time()
+ print("Start rrt planning")
     # ====Search Path with RRT====
-    obstacleList = [
-        (5, 5, 1),
-        (3, 6, 2),
-        (3, 8, 2),
-        (3, 10, 2),
-        (7, 5, 2),
-        (9, 5, 2)
-    ]  # [x,y,size(radius)]
-
+ obstacleList = [(5, 5, 1),(3, 1, 2),(3, 8, 2),(3, 10, 2),(7, 5, 2),(9, -1, 2)] 
+	# [x,y,size(radius)]
     # Set Initial parameters
-    rrt = RRT(start=[0, 0], goal=[5, 10],
-              randArea=[-2, 15], obstacleList=obstacleList)
-    path = rrt.Planning(animation=show_animation)
-
-    # Draw final path
-    if show_animation:
-        rrt.DrawGraph()
-        plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-        plt.grid(True)
-        plt.pause(0.01)  # Need for Mac
-        plt.show()
+ rrt = RRT(start=[0, 0], goal=[14, 1],randArea=[-2, 15], obstacleList=obstacleList)
+ # path = rrt.Planning(animation=show_animation)
+ path = rrt.Planning(animation=False) 
+ tEnd = time.time()
+ tDiff = tEnd - tStart
+ print "time = ", tDiff
+ 
+ # Draw final path
+ if show_animation:
+	rrt.DrawGraph()
+	plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
+	plt.grid(True)
+	# plt.pause(0.01)  # Need for Mac
+	plt.savefig('path.jpeg', dpi = 500)
+	plt.show()
 
 
 if __name__ == '__main__':

@@ -9,11 +9,11 @@ import time
 
 # ------------------------------- #
 # Simulation time [sec] = K * Ts 
-simTime = 4 # sec
-Ts = 1 # sec !!!
-K = simTime/Ts
 
-print "K = " , K
+K = 30
+simTime = 30 # sec
+Ts = 1 # sec !!!
+# K = int(simTime/Ts)
 
 # ------------------------------- #
 # laneLength = 2*eps + d
@@ -156,24 +156,8 @@ for rowA in range(len(vehMInit),3*K+3,3):
 	colA = colA+2
 	A[rowA:rowA+3,colA:colA+3] = Cmodel
 	
+
 consTot.append(A*X == b)
-
-# Constraint for Velocity
-for j in range(K):
-	tmpIdx = j+1
-	consTot.append(X[(5*tmpIdx)+1] <= Vmax)
-	consTot.append(X[(5*tmpIdx)+1] >= Vmin)
-
-# Constraint for Y-axis	
-for j in range(K):
-	tmpIdx = j+1
-	consTot.append(X[(5*tmpIdx)+2] <= Ymax)
-	consTot.append(X[(5*tmpIdx)+2] >= Ymin)
-
-for j in range(K):
-	tmpIdx = j
-	consTot.append(X[(5*tmpIdx)+3] <= aMax)
-	consTot.append(X[(5*tmpIdx)+3] >= aMin)
 
 # -------------- Quadratic Constraint -----------------
 prev_rc = 0
@@ -182,8 +166,8 @@ for t in range(K):
 	q_c = np.zeros((5*K+3,1),dtype=float)
 	P_c = np.zeros((5*K+3,5*K+3),dtype=float)
 	tmp = t+1 # initial state is excluded from constraints while last K is included!
-	P_c[5*tmp,5*tmp] = -2
-	P_c[(5*tmp)+2,(5*tmp)+2] = -2
+	P_c[5*tmp,5*tmp] = -1
+	P_c[(5*tmp)+2,(5*tmp)+2] = -1
 
 	q_c[5*tmp] = 2*vehicleN[0][tmp]
 	q_c[(5*tmp)+2] = 2*vehicleN[1][tmp]
@@ -191,9 +175,39 @@ for t in range(K):
 	print "rc[", tmp, "] = ",r_c
 	# prev_rc = r_c
 	# P_c = .5*(P_c+P_c.T)
-	consTot.append(cvx.quad_form(X,P_c) + q_c.T*X + r_c <= 0)
+	
+	# Xtemp = np.zeros(2,1)
+	print "temp X = ", X[[5*tmp,5*tmp+2],0]
+	print "temp vehN = ", vehicleN[:,tmp]
+	consTot.append(cvx.square(d) <= cvx.sum_squares(X[[5*tmp,5*tmp+2],0]-vehicleN[:,tmp]))
+
+	# consTot.append(cvx.quad_form(X,P_c) + q_c.T*X + r_c <= 0)
 
 
+
+
+# # Constraint for Velocity
+# for j in range(K):
+	# tmpIdx = j+1
+	# # consTot.append(X[(5*tmpIdx)+1] <= Vmax)
+	# # consTot.append(X[(5*tmpIdx)+1] >= Vmin)
+	# consTot = [	X[(5*tmpIdx)+1] >= Vmin, X[(5*tmpIdx)+1] <= Vmax, 
+				# X[(5*tmpIdx)+2] >= Ymin, X[(5*tmpIdx)+2] <= Ymax, 
+				# X[(5*j)+3] 		>= aMin, X[(5*j)+3]		 <= aMax]
+	
+# Constraint for Y-axis	
+# for j in range(K):
+	# tmpIdx = j+1
+	# consTot.append(X[(5*tmpIdx)+2] <= Ymax)
+	# consTot.append(X[(5*tmpIdx)+2] >= Ymin)
+	
+	# consTot = [] 
+
+# for j in range(K):
+	# tmpIdx = j
+	# consTot.append(X[(5*tmpIdx)+3] <= aMax)
+	# consTot.append(X[(5*tmpIdx)+3] >= aMin)	
+	
 # print "P_c = ", P_c
 # print "qc = ", q_c
 # print "rc = ", r_c
