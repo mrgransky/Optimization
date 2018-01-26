@@ -1,39 +1,57 @@
-# import matplotlib
-# matplotlib.use('Agg')
+import matplotlib
+matplotlib.use('Agg')
 
-# import cvxpy
-# import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
-# from qcqp import *
-
-# import cvxopt
-# print "cvxopt version = " , cvxpy.__version__
-
-# import mosek
-# print "mosek" , mosek
-# print('Backend: {}'.format(plt.get_backend()))
-# import time
-# print "cvxopt version = ", cvxopt.__version__
-
-
-import random
+import cvxpy
+import cvxpy as cvx, numpy as np, matplotlib.pyplot as plt
+from qcqp import *
+import cvxopt
+import mosek
 import math
-import copy
-import numpy as np
-import matplotlib.pyplot as plt
 import time
-show_animation = True
-goalSampleRate=20
-minrand = -1.5
-maxrand = 3
+import os, datetime
 
-rndIf = random.randint(0, 100)
+results_dir = os.path.join(os.getcwd(), 'Results/Jan25/')
+sample_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + "path.jpeg"
 
-if rndIf > goalSampleRate:
-	rnd = [random.uniform(minrand, maxrand), random.uniform(minrand, 2)]
-# else:
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+
+
+K = 10
+Ts = 1
+VmLong = 5
+VmLat = 0
+vehMinit = [7,1]
+vehM = np.zeros((2,K+1),dtype=float)
+
+vehM[0,0] = vehMinit[0]
+vehM[1,0] = vehMinit[1]
+
+
+prevVehM = [vehM[0,0],vehM[1,0]]
+for i in range(K):
+	vehM[0,i+1] = VmLong*Ts + prevVehM[0]
+	vehM[1,i+1] = VmLat*Ts + prevVehM[1]
+	prevVehM[0] = vehM[0,i+1]
+	prevVehM[1] = vehM[1,i+1]
 	
 
-print "rand in if cond = ", rndIf, "rnd resp = ", rnd
+goal =  vehM[:,-1] # needs modifications	
+print "vehM = ", goal
+print "len goal = ", goal.shape
+
+
+
+print "angle = ", math.cos(math.pi/3)
+
+
+
+plt.figure()
+plt.plot(vehM[0,:],vehM[1,:],"-b")
+plt.grid(True)
+
+plt.savefig(results_dir + sample_file_name, dpi = 600)
 # timeStep = 3
 # Ts = .5 # sec !!! 
 # d = .8 # m

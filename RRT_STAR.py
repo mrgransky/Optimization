@@ -15,10 +15,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 show_animation = True
+import os, datetime
 
+results_dir = os.path.join(os.getcwd(), 'Results/Jan25/')
+sample_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + "path.jpeg"
 
-class RRT():
-	def __init__(self, start, goal, obstacleList, randArea,expandDis=0.5, goalSampleRate=20, maxIter=500):
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+class RRTSTAR():
+	def __init__(self, start, goal, obstacleList, randArea,expandDis=0.5, goalSampleRate=20, maxIter=2000):
 		self.start = Node(start[0], start[1])
 		self.end = Node(goal[0], goal[1])
 		self.minrand = randArea[0]
@@ -29,43 +35,48 @@ class RRT():
 		self.obstacleList = obstacleList
 
 	def Planning(self, animation=True):
-		self.nodeList = [self.start]
-		for i in range(self.maxIter):
-			# print "nodeList = "
-			# for node in self.nodeList:
-				# print "(x,y) = (", node.x, ",", node.y, ")"
+	
+	
+	# for i in range(K+1):
+	
+			self.nodeList = [self.start]
+			for i in range(self.maxIter):
+				# print "nodeList = "
+				# for node in self.nodeList:
+					# print "(x,y) = (", node.x, ",", node.y, ")"
 			
-				# print "------------------------------------------"
-				rnd = self.get_random_point()
-				# print "random point =",  rnd
-			
-			
-				nearestNode2RandNodeIdx = self.GetNearestListIndex(self.nodeList, rnd)
-				# print "idx nearest = ", nearestNode2RandNodeIdx
-			
-			
-				newNode = self.steer(rnd, nearestNode2RandNodeIdx)
-				#  print(newNode.cost)
-				# print "new Node = (", newNode.x, ",", newNode.y,")"
-				# print "------------------------------------------"
+					# print "------------------------------------------"
+					rnd = self.get_random_point()
+					# print "random point =",  rnd
 			
 			
-				if self.__CollisionCheck(newNode, self.obstacleList):
-					nearinds = self.find_near_nodes(newNode)
-					newNode = self.choose_parent(newNode, nearinds)
-					self.nodeList.append(newNode)
-					self.rewire(newNode, nearinds)
+					nearestNode2RandNodeIdx = self.GetNearestListIndex(self.nodeList, rnd)
+					# print "idx nearest = ", nearestNode2RandNodeIdx
+			
+			
+					newNode = self.steer(rnd, nearestNode2RandNodeIdx)
+					#  print(newNode.cost)
+					# print "new Node = (", newNode.x, ",", newNode.y,")"
+					# print "------------------------------------------"
+			
+			
+					if self.__CollisionCheck(newNode, self.obstacleList):
+						nearinds = self.find_near_nodes(newNode)
+						newNode = self.choose_parent(newNode, nearinds)
+						self.nodeList.append(newNode)
+						self.rewire(newNode, nearinds)
 				
-				newNode2Point = [newNode.x,newNode.y]
-				if animation:
-					self.DrawGraph(rnd)
+					newNode2Point = [newNode.x,newNode.y]
+					if animation:
+						self.DrawGraph(rnd)
 					# self.DrawGraph(newNode2Point)
 			# generate coruse
 		
-		lastIndex = self.get_best_last_index()
-		path = self.gen_final_course(lastIndex)
-		# print "path = ", path
-		return path
+			lastIndex = self.get_best_last_index()
+			path = self.gen_final_course(lastIndex)
+			# print "path = ", path
+			return path
+			
 
 	def choose_parent(self, newNode, nearinds):
 		
@@ -190,15 +201,15 @@ class RRT():
 		
 		# define obstacle
 		for (ox, oy, size) in self.obstacleList:
-			plt.plot(ox, oy, "ok", ms=30 * size)
+			plt.plot(ox, oy, "ok", ms = 5 * size)
 			
 		# plotting the initial and goal on the graph
 		plt.plot(self.start.x, self.start.y, "xr")
 		plt.plot(self.end.x, self.end.y, "xr")
 		
-		plt.axis([-2, 15, -2, 15])
-		plt.grid(True)
-		plt.pause(0.01)
+		# plt.axis([-1, 16, -1, 5])
+		# plt.grid(True)
+		# plt.pause(0.01)
 
 	def GetNearestListIndex(self, nodeList, rnd):
 		dlist = [(node.x - rnd[0]) ** 2 + (node.y - rnd[1])** 2 for node in nodeList]
@@ -217,10 +228,6 @@ class RRT():
 
 
 class Node():
-    """
-    RRT Node
-    """
-
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -228,27 +235,91 @@ class Node():
         self.parent = None
 
 def main():
- tStart = time.time()
- print("Start rrt planning")
-    # ====Search Path with RRT====
- obstacleList = [(5, 5, 1),(3, 1, 2),(3, 8, 2),(3, 10, 2),(7, 5, 2),(9, -1, 2)] 
-	# [x,y,size(radius)]
-    # Set Initial parameters
- rrt = RRT(start=[-1, 0], goal=[14, 1],randArea=[-2, 15], obstacleList=obstacleList)
- # path = rrt.Planning(animation=show_animation)
- path = rrt.Planning(animation=False) 
- tEnd = time.time()
- tDiff = tEnd - tStart
- print "time = ", tDiff
- # Draw final path
- if show_animation:
-		rrt.DrawGraph()
-		plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-		plt.grid(True)
-        # plt.pause(0.01)  # Need for Mac
-		plt.savefig('path.jpeg', dpi = 500)
-		plt.show()
+	# ====Search Path with RRT====
+	print(" -------------- RRT* planning -------------- ")
+    
+	
+	
+	K = 2
+	Ts = 1
+	
+	
+	# Vehicle M:
+	sizeM = 1
+	VmLong = 4
+	VmLat = 0
+	vehMinit = [7,1]
+	vehM = np.zeros((2,K+1),dtype=float)
 
+	vehM[0,0] = vehMinit[0]
+	vehM[1,0] = vehMinit[1]
+	
+	prevVehM = [vehM[0,0],vehM[1,0]]
+	for i in range(K):
+		vehM[0,i+1] = VmLong*Ts + prevVehM[0]
+		vehM[1,i+1] = VmLat*Ts + prevVehM[1]
+		prevVehM[0] = vehM[0,i+1]
+		prevVehM[1] = vehM[1,i+1]
+	# print "vehM = ", vehM
+	
+	
+	# vehicle Follower(F)
+	Vf = 1.4
+	
+	
+	# obsM = []
+	# # obsM.append((30,0,2))
+	
+	# for j in range(K+1):
+		# obsM.append((vehM[0,j],vehM[1,j],1))
+
+	
+    # Set Initial parameters
+	
+	initPoint =[1,1]
+	# start = [1, 1]
+	goal =  [vehM[0,-1]+8, vehM[1,-1]+3]# needs modifications
+	
+	# make an obj to the RRT* class
+	# rrtS = RRTSTAR(start, goal,obstacleList,randArea)
+	
+	start = initPoint
+	for j in range(K+1):
+		randArea = [start[0]-2, goal[0]+2]
+		obsM=[(vehM[0,j],vehM[1,j],1)]
+		print "obsM = ", obsM
+		rrtS = RRTSTAR(start, goal,obsM,randArea)
+		# path = rrt.Planning(animation=show_animation)
+		path = rrtS.Planning(animation=False) 
+		
+		print "path = ", path
+		temp2 = path[-2]
+		temp1 = path[-1]
+		theta = math.atan(( temp2[1]- temp1[1])/( temp2[0]- temp1[0]))
+		start = [Vf* math.cos(theta)*Ts+start[0],Vf*math.sin(theta)*Ts+start[1]]
+		
+		rrtS.DrawGraph()
+		plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
+		plt.plot(start[0],start[1],"^y")
+		
+		# plt.hold(True)
+	
+	plt.show()
+	# tStart = time.time()
+	# tEnd = time.time()
+	# tDiff = tEnd - tStart
+	# print "time = ", tDiff
+	
+	
+	plt.savefig(results_dir + sample_file_name,dpi = 600)
+	
+	# Draw final path
+	# if show_animation:
+		
+	# plt.grid(True)
+	# plt.pause(0.01)  # Need for Mac
+		
+	
 
 if __name__ == '__main__':
     main()
