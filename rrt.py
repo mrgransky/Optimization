@@ -13,7 +13,14 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import os, datetime
 show_animation = True
+
+results_dir = os.path.join(os.getcwd(), 'Results/Jan25/')
+sample_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + "path.jpeg"
+
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
 
 
 class RRT():
@@ -21,7 +28,7 @@ class RRT():
     Class for RRT Planning
     """
 
-    def __init__(self, start, goal, obstacleList, randArea, expandDis=0.5, goalSampleRate=20, maxIter=1000):
+    def __init__(self, start, goal, obstacleList, randArea, expandDis=0.1, goalSampleRate=20, maxIter=2000):
         """
         Setting Parameter
 
@@ -52,7 +59,6 @@ class RRT():
 
             newNode = self.steer(rnd, nind)
 		
-
 		# print "new Node = ", newNode
             #  print(newNode.cost)
 
@@ -112,7 +118,9 @@ class RRT():
 
     def get_random_point(self):
         if random.randint(0, 100) > self.goalSampleRate:
-            rnd = [random.uniform(self.minrand, self.maxrand), random.uniform(self.minrand, 2)]
+            # rnd = [random.uniform(self.minrand, self.maxrand), random.uniform(self.minrand, 6)]
+			# print "end =" , self.end.y 
+			rnd = [random.uniform(self.minrand, self.maxrand),random.uniform(0,self.end.y + 3)]
         else:  # goal point sampling
             rnd = [self.end.x, self.end.y]
         return rnd
@@ -197,7 +205,7 @@ class RRT():
 
         plt.plot(self.start.x, self.start.y, "xr")
         plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis([-2, 15, -2, 15])
+        # plt.axis([-2, 15, -2, 15])
         plt.grid(True)
         plt.pause(0.01)
 
@@ -237,7 +245,7 @@ def main():
  obstacleList = [(5, 5, 1),(3, 1, 2),(3, 8, 2),(3, 10, 2),(7, 5, 2),(9, -1, 2)] 
 	# [x,y,size(radius)]
     # Set Initial parameters
- rrt = RRT(start=[0, 0], goal=[14, 1],randArea=[-2, 15], obstacleList=obstacleList)
+ rrt = RRT(start=[0, 0], goal=[14, 1],randArea=[-1, 15], obstacleList=obstacleList)
  # path = rrt.Planning(animation=show_animation)
  path = rrt.Planning(animation=False) 
  tEnd = time.time()

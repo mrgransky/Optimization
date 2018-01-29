@@ -19,6 +19,7 @@ import os, datetime
 
 results_dir = os.path.join(os.getcwd(), 'Results/Jan25/')
 sample_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + "path.jpeg"
+t = np.linspace(0, 2*np.pi,1000)
 
 if not os.path.isdir(results_dir):
     os.makedirs(results_dir)
@@ -33,7 +34,7 @@ class RRTSTAR():
 		self.goalSampleRate = goalSampleRate
 		self.maxIter = maxIter
 		self.obstacleList = obstacleList
-
+		
 	def Planning(self, animation=True):
 	
 	
@@ -125,7 +126,8 @@ class RRTSTAR():
 	
 	def get_random_point(self):
 		if random.randint(0, 100) > self.goalSampleRate:
-			rnd = [random.uniform(self.minrand, self.maxrand),random.uniform(self.minrand, 2)]
+			rnd = [random.uniform(self.minrand, self.maxrand),random.uniform(self.end.y - 3 ,self.end.y + 3)]
+			
 		else:  # goal point sampling
 			rnd = [self.end.x, self.end.y]
 		return rnd
@@ -188,7 +190,7 @@ class RRTSTAR():
 		return True
 	
 	def DrawGraph(self, inputPoint=None):
-		plt.clf() # clear the figure
+		# plt.clf() # clear the figure
 		if inputPoint is not None:
 			plt.plot(inputPoint[0], inputPoint[1], "oy")
 		for node in self.nodeList:
@@ -196,16 +198,20 @@ class RRTSTAR():
 				# print " printed node = (", node.x, ",", node.y, ")"," , node parent = ", node.parent
 				# draw the line between 
 				plt.plot(	[node.x, self.nodeList[node.parent].x], 
-							[node.y, self.nodeList[node.parent].y], "-b")
+							[node.y, self.nodeList[node.parent].y], "g--",linewidth=.3)
 		
 		
 		# define obstacle
-		for (ox, oy, size) in self.obstacleList:
-			plt.plot(ox, oy, "ok", ms = 5 * size)
+		# for (ox, oy, size) in self.obstacleList:
+			# plt.plot(ox, oy, "ok", ms = 5 * size)
+			
+			
+		for (ox, oy, sizeA, sizeB) in self.obstacleList:
+			plt.plot(ox + sizeA*np.cos(t), oy + sizeB*np.sin(t), "k")
 			
 		# plotting the initial and goal on the graph
-		plt.plot(self.start.x, self.start.y, "xr")
-		plt.plot(self.end.x, self.end.y, "xr")
+		plt.plot(self.start.x, self.start.y, "co")
+		plt.plot(self.end.x, self.end.y, "bo")
 		
 		# plt.axis([-1, 16, -1, 5])
 		# plt.grid(True)
@@ -218,13 +224,27 @@ class RRTSTAR():
 		return minearestNode2RandNodeIdx
 	
 	def __CollisionCheck(self, node, obstacleList):
-		for (ox, oy, size) in obstacleList:
+	
+		for (ox, oy, sizeA, sizeB) in obstacleList:
 			dx = ox - node.x
 			dy = oy - node.y
 			d = dx * dx + dy * dy
-			if d <= size ** 2:
+			if d <= sizeA ** 2 or d <= sizeB:
 				return False  # collision
 		return True  # safe
+
+		
+		
+		
+		
+	
+		# for (ox, oy, size) in obstacleList:
+			# dx = ox - node.x
+			# dy = oy - node.y
+			# d = dx * dx + dy * dy
+			# if d <= size ** 2:
+				# return False  # collision
+		# return True  # safe
 
 
 class Node():
@@ -240,57 +260,63 @@ def main():
     
 	
 	
-	K = 2
+	K = 23
 	Ts = 1
 	
+	xSafe = 5 #m
+	ySafe = 3 #m
 	
 	# Vehicle M:
-	sizeM = 1
 	VmLong = 4
 	VmLat = 0
 	vehMinit = [7,1]
+	goalinit = [vehMinit[0]+xSafe,vehMinit[1]+ySafe]
+	
 	vehM = np.zeros((2,K+1),dtype=float)
+	goalCurr = np.zeros((2,K+1),dtype=float)
 
+	
 	vehM[0,0] = vehMinit[0]
 	vehM[1,0] = vehMinit[1]
+	goalCurr[0,0] = goalinit[0]
+	goalCurr[1,0] = goalinit[1]
 	
 	prevVehM = [vehM[0,0],vehM[1,0]]
 	for i in range(K):
 		vehM[0,i+1] = VmLong*Ts + prevVehM[0]
 		vehM[1,i+1] = VmLat*Ts + prevVehM[1]
+		
+		goalCurr[0,i+1] = vehM[0,i+1] + xSafe
+		goalCurr[1,i+1] = vehM[1,i+1] + ySafe
+		
 		prevVehM[0] = vehM[0,i+1]
 		prevVehM[1] = vehM[1,i+1]
-	# print "vehM = ", vehM
-	
+		
+	print "vehM = ", vehM
+	print "Current Goal = ", goalCurr
 	
 	# vehicle Follower(F)
-	Vf = 1.4
-	
-	
-	# obsM = []
-	# # obsM.append((30,0,2))
-	
-	# for j in range(K+1):
-		# obsM.append((vehM[0,j],vehM[1,j],1))
+	Vf = 4
 
-	
     # Set Initial parameters
-	
 	initPoint =[1,1]
-	# start = [1, 1]
-	goal =  [vehM[0,-1]+8, vehM[1,-1]+3]# needs modifications
-	
-	# make an obj to the RRT* class
-	# rrtS = RRTSTAR(start, goal,obstacleList,randArea)
-	
 	start = initPoint
+	
+	tStart = time.time()
 	for j in range(K+1):
-		randArea = [start[0]-2, goal[0]+2]
-		obsM=[(vehM[0,j],vehM[1,j],1)]
-		print "obsM = ", obsM
-		rrtS = RRTSTAR(start, goal,obsM,randArea)
-		# path = rrt.Planning(animation=show_animation)
-		path = rrtS.Planning(animation=False) 
+		randArea = [start[0]-1, goalCurr[0,j]+1]
+		goal = [goalCurr[0,j],goalCurr[1,j]]
+		
+		if j == int(K/2) or j == int(K/4):
+			print "------------------ Static Obstacle has been detected! ------------------"
+			obsTot = [(vehM[0,j],vehM[1,j],1,.2),(vehM[0,j]+1.4,vehM[1,j]+2.5,3,1)]
+		else:
+			obsTot = [(vehM[0,j],vehM[1,j],1,.2)]
+		
+		print "Current Obstacle = ", obsTot, " , goal = ", goal 
+		rrtS = RRTSTAR(start, goal,obsTot,randArea)
+		# path = rrtS.Planning(animation=show_animation)
+		path = rrtS.Planning(animation=False)
 		
 		print "path = ", path
 		temp2 = path[-2]
@@ -299,17 +325,23 @@ def main():
 		start = [Vf* math.cos(theta)*Ts+start[0],Vf*math.sin(theta)*Ts+start[1]]
 		
 		rrtS.DrawGraph()
-		plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-		plt.plot(start[0],start[1],"^y")
+		# plt.plot(obsTot[0][0], obsTot[0][1], "ok", ms = 5 * obsTot[0][2])
+		lw = 7
+		plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r',linewidth=lw)
+		lw = lw - .5
 		
-		# plt.hold(True)
+		# plot the position of car in the next timeStep
+		plt.plot(start[0],start[1],"^y")
 	
+	tEnd = time.time()
+	tDiff = tEnd - tStart
+	print "Running Time = ", tDiff, " [sec]"
+	plt.grid()
+	plt.xlabel('X [m]')
+	plt.ylabel('Y [m]')
+	plt.title('Trajectory')
+	plt.axis([-7, goal[0]+15, -1, goal[1]+15])
 	plt.show()
-	# tStart = time.time()
-	# tEnd = time.time()
-	# tDiff = tEnd - tStart
-	# print "time = ", tDiff
-	
 	
 	plt.savefig(results_dir + sample_file_name,dpi = 600)
 	

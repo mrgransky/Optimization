@@ -11,47 +11,86 @@ import time
 import os, datetime
 
 results_dir = os.path.join(os.getcwd(), 'Results/Jan25/')
-sample_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + "path.jpeg"
+sample_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + "_test.jpeg"
 
 if not os.path.isdir(results_dir):
     os.makedirs(results_dir)
 
-
-
-K = 10
-Ts = 1
-VmLong = 5
-VmLat = 0
-vehMinit = [7,1]
-vehM = np.zeros((2,K+1),dtype=float)
-
-vehM[0,0] = vehMinit[0]
-vehM[1,0] = vehMinit[1]
-
-
-prevVehM = [vehM[0,0],vehM[1,0]]
-for i in range(K):
-	vehM[0,i+1] = VmLong*Ts + prevVehM[0]
-	vehM[1,i+1] = VmLat*Ts + prevVehM[1]
-	prevVehM[0] = vehM[0,i+1]
-	prevVehM[1] = vehM[1,i+1]
 	
 
-goal =  vehM[:,-1] # needs modifications	
-print "vehM = ", goal
-print "len goal = ", goal.shape
+a = 5
+b = 1
+
+x0 = 0
+y0 = 0
+
+t = np.linspace(0, 2*np.pi)	
+
+x = a*np.cos(t) + x0
+y = b*np.sin(t) + y0
+
+
+plt.plot(x,y,"r")
+plt.axis('equal')
 
 
 
-print "angle = ", math.cos(math.pi/3)
+# x,z = np.meshgrid(x,z)
+
+# Z = -np.exp(-0.05*z) +4*(z+10)**2 
+# X = x**2
 
 
+# plt.xlim([-1.5,1.5])
+# plt.ylim([-11.5,-8.5])
 
-plt.figure()
-plt.plot(vehM[0,:],vehM[1,:],"-b")
-plt.grid(True)
 
 plt.savefig(results_dir + sample_file_name, dpi = 600)
+plt.show()	
+	
+	
+	
+	
+	
+# K = 10
+# Ts = 1
+# VmLong = 5
+# VmLat = 0
+# vehMinit = [7,1]
+# vehM = np.zeros((2,K+1),dtype=float)
+
+# vehM[0,0] = vehMinit[0]
+# vehM[1,0] = vehMinit[1]
+
+
+# prevVehM = [vehM[0,0],vehM[1,0]]
+# for i in range(K):
+	# vehM[0,i+1] = VmLong*Ts + prevVehM[0]
+	# vehM[1,i+1] = VmLat*Ts + prevVehM[1]
+	# prevVehM[0] = vehM[0,i+1]
+	# prevVehM[1] = vehM[1,i+1]
+	
+
+# goal =  vehM[:,-1] # needs modifications	
+# print "vehM = ", goal
+# print "len goal = ", goal.shape
+
+
+# obsM=[(vehM[0,0],vehM[1,0],2)]
+
+# print "angle = ", math.cos(math.pi/3)
+
+# plt.figure()
+
+# plt.plot(obsM[0][0], obsM[0][1], "ok", ms = 1 * obsM[0][2])
+
+# # plt.plot(vehM[0,:],vehM[1,:],"-b",linewidth=.4)
+# plt.grid(True)
+
+
+
+
+
 # timeStep = 3
 # Ts = .5 # sec !!! 
 # d = .8 # m
